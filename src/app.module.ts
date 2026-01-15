@@ -8,6 +8,7 @@ import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
 import { jwtConstants } from "./auth/constants";
 import { AuthGuard } from "./common/guards/auth.guard";
+import { PostsModule } from "./posts/posts.module";
 import { TenantsModule } from "./tenants/tenants.module";
 import { UsersController } from "./users/users.controller";
 import { UsersModule } from "./users/users.module";
@@ -32,6 +33,7 @@ import { UsersModule } from "./users/users.module";
 		AuthModule,
 		UsersModule,
 		TenantsModule,
+		PostsModule,
 	],
 
 	controllers: [AppController, UsersController],
