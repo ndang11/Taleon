@@ -1,43 +1,80 @@
-import { Injectable } from "@nestjs/common";
+// src/posts/posts.service.ts
+import {
+	ForbiddenException,
+	Injectable,
+	NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import type { Model } from "mongoose";
-import type { TenantService } from "../multi-tenant/tenant.service";
-import { POST_MODEL, type Post } from "./post.schema";
-
+import type { Model, Types } from "mongoose";
+import { generateSlug } from "../common/utils/slug.util";
+import type { CreatePostDto } from "./dto/create-post.dto";
+import type { UpdatePostDto } from "./dto/update-post.dto";
+import { Post } from "./schemas/post.schema";
 @Injectable()
 export class PostsService {
 	constructor(
-		@InjectModel(POST_MODEL) private postModel: Model<Post>,
-		private tenantService: TenantService,
+		@InjectModel(Post.name)
+		private readonly postModel: Model<Post>,
 	) {}
 
-	async create(createPostDto: {
-		title: string;
-		content: string;
-	}): Promise<Post> {
-		return this.tenantService.create(this.postModel, createPostDto);
+	async create(
+		dto: CreatePostDto,
+		tenantId: Types.ObjectId,
+		authorId: Types.ObjectId,
+	) {
+		const post = await this.postModel.create({
+			...dto,
+			slug: generateSlug(dto.title),
+			tenantId,
+			authorId,
+		});
+
+		return post;
 	}
 
-	async findAll(): Promise<Post[]> {
-		return this.tenantService.find(this.postModel);
+	async findAllByTenant(tenantId: Types.ObjectId) {
+		return this.postModel.find({ tenantId }).sort({ createdAt: -1 });
 	}
 
-	async findOne(id: string): Promise<Post | null> {
-		return this.tenantService.findOne(this.postModel, { _id: id });
+	async findOne(id: string, tenantId: Types.ObjectId) {
+		const post = await this.postModel.findOne({
+			_id: id,
+			tenantId,
+		});
+
+		if (!post) throw new NotFoundException("Post not found");
+		return post;
 	}
 
 	async update(
 		id: string,
-		updatePostDto: Partial<{ title: string; content: string }>,
-	): Promise<any> {
-		return this.tenantService.updateOne(
-			this.postModel,
-			{ _id: id },
-			updatePostDto,
-		);
+		dto: UpdatePostDto,
+		tenantId: Types.ObjectId,
+		userId: Types.ObjectId,
+	) {
+		const post = await this.findOne(id, tenantId);
+
+		if (!post.authorId.equals(userId)) {
+			throw new ForbiddenException("You cannot edit this post");
+		}
+
+		Object.assign(post, dto);
+
+		if (dto.title) {
+			post.slug = generateSlug(dto.title);
+		}
+
+		return post.save();
 	}
 
-	async remove(id: string): Promise<any> {
-		return this.tenantService.deleteOne(this.postModel, { _id: id });
+	async remove(id: string, tenantId: Types.ObjectId, userId: Types.ObjectId) {
+		const post = await this.findOne(id, tenantId);
+
+		if (!post.authorId.equals(userId)) {
+			throw new ForbiddenException("You cannot delete this post");
+		}
+
+		await post.deleteOne();
+		return { message: "Post deleted successfully" };
 	}
 }

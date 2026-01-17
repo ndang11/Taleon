@@ -7,7 +7,7 @@ import type { RegisterDto } from "./dto/register.dto";
 
 @Controller("auth")
 export class AuthController {
-	constructor(private authService: AuthService) {}
+	constructor(private readonly authService: AuthService) {}
 
 	@Public()
 	@Post("register")
@@ -15,9 +15,14 @@ export class AuthController {
 		@Body() dto: RegisterDto,
 		@Res({ passthrough: true }) res: Response,
 	) {
-		const token = await this.authService.register(dto);
-		this.setCookie(res, token.accessToken);
-		return { success: true, access_token: token.accessToken };
+		const { accessToken } = await this.authService.register(dto);
+
+		this.setCookie(res, accessToken);
+
+		return {
+			success: true,
+			accessToken,
+		};
 	}
 
 	@Public()
@@ -26,9 +31,14 @@ export class AuthController {
 		@Body() dto: LoginDto,
 		@Res({ passthrough: true }) res: Response,
 	) {
-		const token = await this.authService.login(dto);
-		this.setCookie(res, token.accessToken);
-		return { success: true, access_token: token.accessToken };
+		const { accessToken } = await this.authService.login(dto);
+
+		this.setCookie(res, accessToken);
+
+		return {
+			success: true,
+			accessToken,
+		};
 	}
 
 	@Post("logout")
