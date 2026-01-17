@@ -3,44 +3,48 @@ import {
 	Controller,
 	Delete,
 	Get,
+	Post as HttpPost,
 	Param,
 	Patch,
-	Post,
 	UseGuards,
 } from "@nestjs/common";
-import { TenantGuard } from "../multi-tenant/tenant.guard";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import type { CreatePostDto } from "./dto/create-post.dto";
+import type { UpdatePostDto } from "./dto/update-post.dto";
 import type { PostsService } from "./posts.service";
 
 @Controller("posts")
-@UseGuards(TenantGuard)
+@UseGuards(JwtAuthGuard)
 export class PostsController {
 	constructor(private readonly postsService: PostsService) {}
 
-	@Post()
-	create(@Body() createPostDto: { title: string; content: string }) {
-		return this.postsService.create(createPostDto);
+	@HttpPost()
+	create(@Body() dto: CreatePostDto, @CurrentUser() user) {
+		return this.postsService.create(dto, user.tenantId, user.userId);
 	}
 
 	@Get()
-	findAll() {
-		return this.postsService.findAll();
+	findAll(@CurrentUser() user) {
+		return this.postsService.findAllByTenant(user.tenantId);
 	}
 
 	@Get(":id")
-	findOne(@Param("id") id: string) {
-		return this.postsService.findOne(id);
+	findOne(@Param("id") id: string, @CurrentUser() user) {
+		return this.postsService.findOne(id, user.tenantId);
 	}
 
 	@Patch(":id")
 	update(
 		@Param("id") id: string,
-		@Body() updatePostDto: Partial<{ title: string; content: string }>,
+		@Body() dto: UpdatePostDto,
+		@CurrentUser() user,
 	) {
-		return this.postsService.update(id, updatePostDto);
+		return this.postsService.update(id, dto, user.tenantId, user.userId);
 	}
 
 	@Delete(":id")
-	remove(@Param("id") id: string) {
-		return this.postsService.remove(id);
+	remove(@Param("id") id: string, @CurrentUser() user) {
+		return this.postsService.remove(id, user.tenantId, user.userId);
 	}
 }
