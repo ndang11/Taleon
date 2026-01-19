@@ -18,7 +18,7 @@ interface JwtPayload {
 export class AuthService {
 	constructor(
 		private readonly users: UsersService,
-		private readonly tenants: TenantsService,
+		readonly tenants: TenantsService,
 		private readonly jwt: JwtService,
 	) {}
 
@@ -38,7 +38,7 @@ export class AuthService {
 			name: data.name,
 		});
 
-		return this.issueToken((user as any)._id.toString());
+		return this.issueToken(user._id.toString());
 	}
 
 	async login(credentials: LoginDto) {
@@ -49,7 +49,7 @@ export class AuthService {
 
 		await this.verifyPassword(credentials.password, user.password);
 
-		return this.issueToken((user as any)._id.toString());
+		return this.issueToken(user._id.toString());
 	}
 
 	private async hashPassword(password: string): Promise<string> {

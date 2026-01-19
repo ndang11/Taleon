@@ -18,7 +18,7 @@ describe("TenantGuard", () => {
 	});
 
 	it("should allow access when user has tenantId", () => {
-		const mockRequest: any = {
+		const mockRequest = {
 			user: { id: "1", tenantId: "tenant1" },
 		};
 		const mockContext = {

@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, PrimaryGeneratedColumn } from "typeorm";
 
 export class Tenant {
 	@PrimaryGeneratedColumn("uuid")

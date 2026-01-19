@@ -19,14 +19,17 @@ export class TenantService {
 
 	async find<T>(
 		model: Model<T>,
-		filter: any = {},
-		options: any = {},
+		filter: Record<string, unknown> = {},
+		options: Record<string, unknown> = {},
 	): Promise<T[]> {
 		const tenantFilter = { ...filter, tenantId: this.getTenantId() };
 		return model.find(tenantFilter, null, options).exec();
 	}
 
-	async findOne<T>(model: Model<T>, filter: any = {}): Promise<T | null> {
+	async findOne<T>(
+		model: Model<T>,
+		filter: Record<string, unknown> = {},
+	): Promise<T | null> {
 		const tenantFilter = { ...filter, tenantId: this.getTenantId() };
 		return model.findOne(tenantFilter).exec();
 	}
@@ -36,12 +39,19 @@ export class TenantService {
 		return (await doc.save()) as T;
 	}
 
-	async updateOne<T>(model: Model<T>, filter: any, update: any): Promise<any> {
+	async updateOne<T>(
+		model: Model<T>,
+		filter: Record<string, unknown>,
+		update: Record<string, unknown>,
+	): Promise<unknown> {
 		const tenantFilter = { ...filter, tenantId: this.getTenantId() };
 		return model.updateOne(tenantFilter, update).exec();
 	}
 
-	async deleteOne<T>(model: Model<T>, filter: any): Promise<any> {
+	async deleteOne<T>(
+		model: Model<T>,
+		filter: Record<string, unknown>,
+	): Promise<unknown> {
 		const tenantFilter = { ...filter, tenantId: this.getTenantId() };
 		return model.deleteOne(tenantFilter).exec();
 	}

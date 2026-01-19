@@ -14,5 +14,8 @@
 		"parser": {
 			"unsafeParameterDecoratorsEnabled": true
 		}
+	},
+	"files": {
+		"includes": ["src/**", "test/**", "!!**/dist", "!!**/node_modules"]
 	}
 }

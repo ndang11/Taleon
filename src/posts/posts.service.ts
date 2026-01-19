@@ -1,4 +1,3 @@
-// src/posts/posts.service.ts
 import {
 	ForbiddenException,
 	Injectable,
