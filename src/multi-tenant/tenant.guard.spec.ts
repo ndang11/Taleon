@@ -29,7 +29,7 @@ describe("TenantGuard", () => {
 
 		const result = guard.canActivate(mockContext);
 		expect(result).toBe(true);
-		expect(mockRequest.tenantId).toBe("tenant1");
+		expect(mockRequest.user.tenantId).toBe("tenant1");
 	});
 
 	it("should throw ForbiddenException when user is not present", () => {

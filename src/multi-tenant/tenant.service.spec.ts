@@ -5,7 +5,7 @@ describe("TenantService", () => {
 	let service: TenantService;
 	let mockModel: Model<unknown>;
 
-	const mockRequest = { tenantId: "tenant1" };
+	const _mockRequest = { tenantId: "tenant1" };
 
 	beforeEach(() => {
 		mockModel = {
@@ -16,7 +16,9 @@ describe("TenantService", () => {
 		} as unknown as Model<unknown>;
 
 		// Directly instantiate with mock request
-		service = new TenantService(mockRequest as Request & { tenantId: string });
+		service = new TenantService({ tenantId: "tenant1" } as Request & {
+			tenantId?: string;
+		});
 	});
 
 	it("should be defined", () => {
