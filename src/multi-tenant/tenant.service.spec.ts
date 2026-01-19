@@ -3,7 +3,7 @@ import { TenantService } from "./tenant.service";
 
 describe("TenantService", () => {
 	let service: TenantService;
-	let mockModel: Model<any>;
+	let mockModel: Model<unknown>;
 
 	const mockRequest = { tenantId: "tenant1" };
 
@@ -13,10 +13,10 @@ describe("TenantService", () => {
 			findOne: jest.fn(),
 			updateOne: jest.fn(),
 			deleteOne: jest.fn(),
-		} as any;
+		} as unknown as Model<unknown>;
 
 		// Directly instantiate with mock request
-		service = new TenantService(mockRequest as any);
+		service = new TenantService(mockRequest as Request & { tenantId: string });
 	});
 
 	it("should be defined", () => {
@@ -58,7 +58,7 @@ describe("TenantService", () => {
 			tenantId: "tenant1",
 			save: jest.fn().mockResolvedValue({ title: "Test", tenantId: "tenant1" }),
 		};
-		(mockModel as any) = jest.fn().mockImplementation(() => mockDoc);
+		(mockModel as unknown) = jest.fn().mockImplementation(() => mockDoc);
 
 		const result = await service.create(mockModel, { title: "Test" });
 		expect(result).toEqual({ title: "Test", tenantId: "tenant1" });
@@ -69,7 +69,7 @@ describe("TenantService", () => {
 			exec: jest.fn().mockResolvedValue({ acknowledged: true }),
 		});
 
-		const result = await service.updateOne(
+		const _result = await service.updateOne(
 			mockModel,
 			{ _id: "1" },
 			{ title: "Updated" },
@@ -85,7 +85,7 @@ describe("TenantService", () => {
 			exec: jest.fn().mockResolvedValue({ deletedCount: 1 }),
 		});
 
-		const result = await service.deleteOne(mockModel, { _id: "1" });
+		const _result = await service.deleteOne(mockModel, { _id: "1" });
 		expect(mockModel.deleteOne).toHaveBeenCalledWith({
 			_id: "1",
 			tenantId: "tenant1",
@@ -93,7 +93,9 @@ describe("TenantService", () => {
 	});
 
 	it("should throw error if tenantId not set", async () => {
-		const serviceWithoutTenant = new TenantService({} as any);
+		const serviceWithoutTenant = new TenantService(
+			{} as Request & { tenantId?: string },
+		);
 
 		await expect(serviceWithoutTenant.find(mockModel)).rejects.toThrow(
 			"Tenant ID not set in request",

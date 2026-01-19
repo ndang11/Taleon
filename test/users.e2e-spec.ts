@@ -8,7 +8,7 @@ import { UsersModule } from "../src/users/users.module";
 describe("UsersController (e2e)", () => {
 	let app: INestApplication;
 	let mongod: MongoMemoryServer;
-	let userId: string;
+	let _userId: string;
 
 	beforeAll(async () => {
 		mongod = await MongoMemoryServer.create();
