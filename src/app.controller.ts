@@ -8,10 +8,4 @@ export class AppController {
 	getHello() {
 		return "Welcome to my blog post API";
 	}
-
-	@Public()
-	@Get("api")
-	getApiHello() {
-		return "Hello World!";
-	}
 }
