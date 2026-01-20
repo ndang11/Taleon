@@ -3,12 +3,12 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import type { JwtService } from "@nestjs/jwt";
+import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import type { UserDocument } from "../users/schemas/user.schema";
-import type { UsersService } from "../users/users.service";
-import type { LoginDto } from "./dto/login.dto";
-import type { RegisterDto } from "./dto/register.dto";
+import { UserDocument } from "../users/schemas/user.schema";
+import { UsersService } from "../users/users.service";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterDto } from "./dto/register.dto";
 
 interface JwtPayload {
 	userId: string;
