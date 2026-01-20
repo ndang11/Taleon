@@ -4,20 +4,27 @@ import {
 	ForbiddenException,
 	Injectable,
 } from "@nestjs/common";
-import type { Request } from "express";
+import type {
+	ParamsDictionary,
+	Query,
+	Request,
+} from "express-serve-static-core";
 
 interface User {
 	id: string;
 	tenantId: string;
-	// other properties
+}
+
+interface CustomRequest
+	extends Request<ParamsDictionary, unknown, unknown, Query> {
+	user?: User;
+	tenantId?: string;
 }
 
 @Injectable()
 export class TenantGuard implements CanActivate {
 	canActivate(context: ExecutionContext): boolean {
-		const request = context
-			.switchToHttp()
-			.getRequest<Request & { user?: User; tenantId?: string }>();
+		const request = context.switchToHttp().getRequest<CustomRequest>();
 		const user = request.user;
 
 		if (!user || !user.tenantId) {

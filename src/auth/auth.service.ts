@@ -5,7 +5,6 @@ import {
 } from "@nestjs/common";
 import type { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import type { TenantsService } from "../tenants/tenants.service";
 import type { UserDocument } from "../users/schemas/user.schema";
 import type { UsersService } from "../users/users.service";
 import type { LoginDto } from "./dto/login.dto";
@@ -19,7 +18,6 @@ interface JwtPayload {
 export class AuthService {
 	constructor(
 		private readonly users: UsersService,
-		readonly tenants: TenantsService,
 		private readonly jwt: JwtService,
 	) {}
 

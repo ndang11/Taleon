@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_GUARD, Reflector } from "@nestjs/core";
+import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { MongooseModule } from "@nestjs/mongoose";
 import { AppController } from "./app.controller";
@@ -42,7 +42,6 @@ import { UsersModule } from "./users/users.module";
 			provide: APP_GUARD,
 			useClass: AuthGuard,
 		},
-		Reflector,
 		AppService,
 	],
 })
