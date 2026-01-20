@@ -8,9 +8,9 @@ import {
 	Patch,
 } from "@nestjs/common";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import type { CreatePostDto } from "./dto/create-post.dto";
-import type { UpdatePostDto } from "./dto/update-post.dto";
-import type { PostsService } from "./posts.service";
+import { CreatePostDto } from "./dto/create-post.dto";
+import { UpdatePostDto } from "./dto/update-post.dto";
+import { PostsService } from "./posts.service";
 
 @Controller("posts")
 export class PostsController {

@@ -3,12 +3,12 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import type { JwtService } from "@nestjs/jwt";
+import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import type { UserDocument } from "../users/schemas/user.schema";
-import type { UsersService } from "../users/users.service";
-import type { LoginDto } from "./dto/login.dto";
-import type { RegisterDto } from "./dto/register.dto";
+import { UsersService } from "../users/users.service";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterDto } from "./dto/register.dto";
 
 interface JwtPayload {
 	userId: string;
@@ -17,12 +17,12 @@ interface JwtPayload {
 @Injectable()
 export class AuthService {
 	constructor(
-		private readonly users: UsersService,
-		private readonly jwt: JwtService,
+		private readonly usersService: UsersService,
+		private readonly jwtService: JwtService,
 	) {}
 
 	async register(data: RegisterDto) {
-		const emailInUse = await this.users.findByEmail(data.email);
+		const emailInUse = await this.usersService.findByEmail(data.email);
 		if (emailInUse) {
 			throw new BadRequestException(
 				"An account with this email already exists",
@@ -31,7 +31,7 @@ export class AuthService {
 
 		const hashedPassword = await this.hashPassword(data.password);
 
-		const user = await this.users.create({
+		const user = await this.usersService.create({
 			email: data.email,
 			password: hashedPassword,
 			name: data.name,
@@ -41,7 +41,7 @@ export class AuthService {
 	}
 
 	async login(credentials: LoginDto) {
-		const user = await this.users.findByEmail(credentials.email);
+		const user = await this.usersService.findByEmail(credentials.email);
 		if (!user) {
 			throw new UnauthorizedException("Email or password is incorrect");
 		}
@@ -67,7 +67,7 @@ export class AuthService {
 		const payload: JwtPayload = { userId };
 
 		return {
-			accessToken: this.jwt.sign(payload),
+			accessToken: this.jwtService.sign(payload),
 		};
 	}
 }
