@@ -29,3 +29,4 @@ export class CreatePostDto {
   @IsBoolean()
   isPublic?: boolean;
 }
+
