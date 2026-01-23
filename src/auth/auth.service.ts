@@ -3,16 +3,12 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import type { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import type { UserDocument } from "../users/schemas/user.schema";
-import { UsersService } from "../users/users.service";
-import { LoginDto } from "./dto/login.dto";
-import { RegisterDto } from "./dto/register.dto";
-
-interface JwtPayload {
-	userId: string;
-}
+import type { UsersService } from "../users/users.service";
+import type { LoginDto } from "./dto/login.dto";
+import type { RegisterDto } from "./dto/register.dto";
 
 @Injectable()
 export class AuthService {
@@ -37,7 +33,13 @@ export class AuthService {
 			name: data.name,
 		});
 
-		return this.issueToken((user as UserDocument)._id.toString());
+		const payload = {
+			userId: (user as UserDocument)._id.toString(),
+		};
+
+		return {
+			accessToken: this.jwtService.sign(payload),
+		};
 	}
 
 	async login(credentials: LoginDto) {
@@ -48,7 +50,13 @@ export class AuthService {
 
 		await this.verifyPassword(credentials.password, user.password);
 
-		return this.issueToken(user._id.toString());
+		const payload = {
+			userId: user._id.toString(),
+		};
+
+		return {
+			accessToken: this.jwtService.sign(payload),
+		};
 	}
 
 	private async hashPassword(password: string): Promise<string> {
@@ -63,8 +71,12 @@ export class AuthService {
 		}
 	}
 
-	private issueToken(userId: string) {
-		const payload: JwtPayload = { userId };
+	async loginWithTenant(user: UserDocument) {
+		const payload = {
+			userId: user._id.toString(),
+			tenantId: user.tenantId.toString(),
+			email: user.email,
+		};
 
 		return {
 			accessToken: this.jwtService.sign(payload),
