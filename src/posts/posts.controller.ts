@@ -28,7 +28,7 @@ export class PostsController {
 	async create(
 		@Body() dto: CreatePostDto,
 		@CurrentUser() user: JwtUser,
-		@UploadedFile() image?: Express.Multer.File,
+		@UploadedFile() image?: any,
 	) {
 		console.log("AUTH USER:", user);
 		if (!user || !user.tenantId) {
@@ -53,7 +53,7 @@ export class PostsController {
 		@Param("id") id: string,
 		@Body() dto: UpdatePostDto,
 		@CurrentUser() user: JwtUser,
-		@UploadedFile() image?: Express.Multer.File,
+		@UploadedFile() image?: any,
 	) {
 		return this.postsService.update(id, dto, user.tenantId, user.userId, image);
 	}
