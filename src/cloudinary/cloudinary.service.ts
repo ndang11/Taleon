@@ -1,3 +1,4 @@
+/// <reference types="multer" />
 import { Readable } from "node:stream";
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import type { ConfigService } from "@nestjs/config";
@@ -24,10 +25,10 @@ export class CloudinaryService {
 
 	/**
 	 * Upload an image to Cloudinary
-	 * @param file Express.Multer.File
+	 * @param file uploaded file
 	 * @returns uploaded image URL
 	 */
-	async uploadImage(file: Express.Multer.File): Promise<string> {
+	async uploadImage(file: any): Promise<string> {
 		if (!file) throw new InternalServerErrorException("No file provided");
 
 		try {

@@ -22,7 +22,7 @@ export class PostsService {
 	) {}
 
 	/** CREATE POST */
-	async create(dto: CreatePostDto, user: JwtUser, image?: Express.Multer.File) {
+	async create(dto: CreatePostDto, user: JwtUser, image?: any) {
 		if (!user || !user.tenantId) {
 			throw new BadRequestException("Invalid authenticated user");
 		}
@@ -90,7 +90,7 @@ export class PostsService {
 		dto: UpdatePostDto,
 		tenantId: string,
 		userId: string,
-		file?: Express.Multer.File,
+		file?: any,
 	) {
 		const post = await this.findOne(id, tenantId);
 
