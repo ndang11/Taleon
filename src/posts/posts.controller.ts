@@ -12,6 +12,7 @@ import {
 	UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import type { Express } from "express";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import type { JwtUser } from "../auth/interfaces/jwt-user.interface";
 import { AuthGuard } from "../common/guards/auth.guard";
@@ -19,8 +20,8 @@ import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
 import type { PostsService } from "./posts.service";
 
-@Controller("posts")
 @UseGuards(AuthGuard)
+@Controller("posts")
 export class PostsController {
 	constructor(private readonly postsService: PostsService) {}
 	@Post()
@@ -28,7 +29,7 @@ export class PostsController {
 	async create(
 		@Body() dto: CreatePostDto,
 		@CurrentUser() user: JwtUser,
-		@UploadedFile() image?: any,
+		@UploadedFile() image?: Express.Multer.File,
 	) {
 		console.log("AUTH USER:", user);
 		if (!user || !user.tenantId) {
@@ -53,7 +54,7 @@ export class PostsController {
 		@Param("id") id: string,
 		@Body() dto: UpdatePostDto,
 		@CurrentUser() user: JwtUser,
-		@UploadedFile() image?: any,
+		@UploadedFile() image?: Express.Multer.File,
 	) {
 		return this.postsService.update(id, dto, user.tenantId, user.userId, image);
 	}
