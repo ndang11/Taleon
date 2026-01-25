@@ -1,39 +1,32 @@
 /// <reference types="multer" />
 import { Readable } from "node:stream";
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
-import { v2 as cloudinary, type UploadApiResponse } from "cloudinary";
+
+import {
+	Inject,
+	Injectable,
+	InternalServerErrorException,
+} from "@nestjs/common";
+import type { UploadApiResponse } from "cloudinary";
+import type { Express } from "express";
 
 @Injectable()
 export class CloudinaryService {
-	constructor(private readonly configService: ConfigService) {
-		const cloudName = this.configService.get<string>("CLOUDINARY_CLOUD_NAME");
-		const apiKey = this.configService.get<string>("CLOUDINARY_API_KEY");
-		const apiSecret = this.configService.get<string>("CLOUDINARY_API_SECRET");
-
-		if (!cloudName || !apiKey || !apiSecret) {
-			throw new Error("Cloudinary environment variables are not set");
-		}
-
-		cloudinary.config({
-			cloud_name: cloudName,
-			api_key: apiKey,
-			api_secret: apiSecret,
-			secure: true,
-		});
-	}
+	constructor(
+		@Inject("CLOUDINARY")
+		private readonly cloudinary: typeof import("cloudinary").v2,
+	) {}
 
 	/**
 	 * Upload an image to Cloudinary
 	 * @param file uploaded file
 	 * @returns uploaded image URL
 	 */
-	async uploadImage(file: any): Promise<string> {
+	async uploadImage(file: Express.Multer.File): Promise<string> {
 		if (!file) throw new InternalServerErrorException("No file provided");
 
 		try {
 			const result: UploadApiResponse = await new Promise((resolve, reject) => {
-				const uploadStream = cloudinary.uploader.upload_stream(
+				const uploadStream = this.cloudinary.uploader.upload_stream(
 					{ folder: "posts", resource_type: "auto" },
 					(err, res) => {
 						if (err) return reject(err);
@@ -64,7 +57,7 @@ export class CloudinaryService {
 			throw new InternalServerErrorException("Invalid Cloudinary URL");
 
 		return new Promise((resolve, reject) => {
-			cloudinary.uploader.destroy(publicId, (err, res) => {
+			this.cloudinary.uploader.destroy(publicId, (err, res) => {
 				if (err) return reject(err);
 				resolve(res);
 			});
