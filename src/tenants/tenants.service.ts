@@ -15,38 +15,22 @@ export class TenantsService {
 		private readonly tenantModel: Model<TenantDocument>,
 	) {}
 
-	/**
-	 * Creates a new tenant.
-	 * @param params The tenant data to create.
-	 * @returns The created tenant document.
-	 */
-	async create(params: CreateTenantDto): Promise<TenantDocument> {
-		const tenant = new this.tenantModel({
-			name: params.name,
-			ownerId: params.ownerId,
-			isActive: true,
-		});
-		return tenant.save();
+	async create(data: {
+		name: string;
+		slug?: string;
+		ownerId?: string;
+	}): Promise<TenantDocument> {
+		const {
+			name,
+			slug = name.toLowerCase().replace(/ /g, "-"),
+			ownerId,
+		} = data;
+		const createdTenant = new this.tenantModel({ name, slug, ownerId });
+		return createdTenant.save();
 	}
 
-	/**
-	 * Updates a tenant by ID.
-	 * @param tenantId The tenant ID.
-	 * @param params The data to update.
-	 * @returns The updated tenant document.
-	 * @throws NotFoundException if the tenant is not found.
-	 */
-	async update(
-		tenantId: string,
-		params: UpdateTenantDto,
-	): Promise<TenantDocument> {
-		const tenant = await this.tenantModel
-			.findByIdAndUpdate(tenantId, { $set: params }, { new: true })
-			.exec();
-		if (!tenant) {
-			throw new NotFoundException("Tenant not found");
-		}
-		return tenant;
+	async findAll(): Promise<Tenant[]> {
+		return this.tenantModel.find().exec();
 	}
 
 	/**

@@ -5,8 +5,23 @@ import {
 	UnauthorizedException,
 } from "@nestjs/common";
 import type { Reflector } from "@nestjs/core";
+import type {
+	ParamsDictionary,
+	Query,
+	Request,
+} from "express-serve-static-core";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
-import type { TenantsService } from "../tenants/tenants.service";
+
+interface User {
+	userId: string;
+	tenantId: string;
+}
+
+interface CustomRequest
+	extends Request<ParamsDictionary, unknown, unknown, Query> {
+	user?: User;
+	tenantId?: string;
+}
 
 @Injectable()
 export class TenantGuard implements CanActivate {

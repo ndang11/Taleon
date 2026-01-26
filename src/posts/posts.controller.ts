@@ -20,6 +20,11 @@ import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
 import { PostsService } from "./posts.service";
 
+interface CustomRequest extends Request {
+	user: { userId: string; tenantId: string };
+	tenantId: string;
+}
+
 @Controller("posts")
 export class PostsController {
 	constructor(
@@ -29,11 +34,11 @@ export class PostsController {
 
 	@UseGuards(AuthGuard("jwt"), TenantGuard)
 	@Post()
-	create(@Body() createPostDto: CreatePostDto) {
+	create(@Body() createPostDto: CreatePostDto, @Request() req: CustomRequest) {
 		return this.postsService.create(
 			createPostDto,
-			this.tenantContext.requiredUserId,
-			this.tenantContext.requiredTenantId,
+			req.user.userId,
+			req.tenantId,
 		);
 	}
 
@@ -62,18 +67,14 @@ export class PostsController {
 		return this.postsService.update(
 			id,
 			updatePostDto,
-			this.tenantContext.requiredUserId,
-			this.tenantContext.requiredTenantId,
+			req.user.userId,
+			req.tenantId,
 		);
 	}
 
 	@Delete(":id")
-	remove(@Param("id") id: string) {
-		return this.postsService.remove(
-			id,
-			this.tenantContext.requiredUserId,
-			this.tenantContext.requiredTenantId,
-		);
+	remove(@Param("id") id: string, @Request() req: CustomRequest) {
+		return this.postsService.remove(id, req.user.userId, req.tenantId);
 	}
 
 	@Post("upload")
