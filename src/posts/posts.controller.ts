@@ -21,7 +21,7 @@ import type { UpdatePostDto } from "./dto/update-post.dto";
 import type { PostsService } from "./posts.service";
 
 interface CustomRequest extends Request {
-	user: { id: string; tenantId: string };
+	user: { userId: string; tenantId: string };
 	tenantId: string;
 }
 
@@ -32,7 +32,11 @@ export class PostsController {
 
 	@Post()
 	create(@Body() createPostDto: CreatePostDto, @Request() req: CustomRequest) {
-		return this.postsService.create(createPostDto, req.user.id, req.tenantId);
+		return this.postsService.create(
+			createPostDto,
+			req.user.userId,
+			req.tenantId,
+		);
 	}
 
 	@Public()
@@ -64,14 +68,14 @@ export class PostsController {
 		return this.postsService.update(
 			id,
 			updatePostDto,
-			req.user.id,
+			req.user.userId,
 			req.tenantId,
 		);
 	}
 
 	@Delete(":id")
 	remove(@Param("id") id: string, @Request() req: CustomRequest) {
-		return this.postsService.remove(id, req.user.id, req.tenantId);
+		return this.postsService.remove(id, req.user.userId, req.tenantId);
 	}
 
 	@Post("upload")

@@ -9,11 +9,16 @@ export class TenantsService {
 		@InjectModel(Tenant.name) private tenantModel: Model<TenantDocument>,
 	) {}
 
-	async create(
-		name: string,
-		slug: string,
-		ownerId: string,
-	): Promise<TenantDocument> {
+	async create(data: {
+		name: string;
+		slug?: string;
+		ownerId?: string;
+	}): Promise<TenantDocument> {
+		const {
+			name,
+			slug = name.toLowerCase().replace(/ /g, "-"),
+			ownerId,
+		} = data;
 		const createdTenant = new this.tenantModel({ name, slug, ownerId });
 		return createdTenant.save();
 	}
