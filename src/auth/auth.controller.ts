@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Res } from "@nestjs/common";
 import type { Response } from "express";
 import { Public } from "../common/decorators/public.decorator";
-import { AuthService } from "./auth.service";
+import type { AuthService } from "./auth.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { RegisterDto } from "./dto/register.dto";
 
