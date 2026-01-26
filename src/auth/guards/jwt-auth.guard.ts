@@ -4,8 +4,8 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { JwtService } from "@nestjs/jwt";
+import type { Reflector } from "@nestjs/core";
+import type { JwtService } from "@nestjs/jwt";
 import type { Request } from "express";
 import { IS_PUBLIC_KEY } from "../../common/decorators/public.decorator";
 

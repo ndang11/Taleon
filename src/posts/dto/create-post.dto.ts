@@ -1,31 +1,37 @@
-import { IsNotEmpty, IsOptional, IsString, IsBoolean, IsEnum } from "class-validator";
+import {
+	IsBoolean,
+	IsEnum,
+	IsNotEmpty,
+	IsOptional,
+	IsString,
+} from "class-validator";
 
 export class CreatePostDto {
-  @IsNotEmpty()
-  @IsString()
-  title!: string;
+	@IsNotEmpty()
+	@IsString()
+	title!: string;
 
-  @IsNotEmpty()
-  @IsString()
-  content!: string;
+	@IsNotEmpty()
+	@IsString()
+	content!: string;
 
-  @IsOptional()
-  @IsEnum(["draft", "published", "unpublished"])
-  status?: "draft" | "published" | "unpublished";
+	@IsOptional()
+	@IsEnum(["draft", "published", "unpublished"])
+	status?: "draft" | "published" | "unpublished";
 
-  @IsOptional()
-  @IsString()
-  slug?: string;
+	@IsOptional()
+	@IsString()
+	slug?: string;
 
-  @IsNotEmpty()
-  @IsString()
-  category!: string;
+	@IsNotEmpty()
+	@IsString()
+	category!: string;
 
-  @IsOptional()
-  @IsString()
-  image?: string;
+	@IsOptional()
+	@IsString()
+	image?: string;
 
-  @IsOptional()
-  @IsBoolean()
-  isPublic?: boolean;
+	@IsOptional()
+	@IsBoolean()
+	isPublic?: boolean;
 }
