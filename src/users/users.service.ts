@@ -13,7 +13,8 @@ export class UsersService {
 		name: string;
 		email: string;
 		password: string;
-	}): Promise<User> {
+		tenantId?: string;
+	}): Promise<UserDocument> {
 		const user = new this.userModel(data);
 		return user.save();
 	}

@@ -1,16 +1,14 @@
 /// <reference types="multer" />
 import { Readable } from "node:stream";
 
-import {
-	InternalServerErrorException,
-} from "@nestjs/common";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import type * as cloudinaryLib from "cloudinary";
 import type { UploadApiResponse } from "cloudinary";
 import type { Express } from "express";
 
+@Injectable()
 export class CloudinaryService {
-	constructor(
-		private readonly cloudinary: any,
-	) {}
+	constructor(private readonly cloudinary: typeof cloudinaryLib.v2) {}
 
 	/**
 	 * Upload an image to Cloudinary

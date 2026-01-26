@@ -3,10 +3,11 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import type { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
+import type { TenantsService } from "../tenants/tenants.service";
 import type { UserDocument } from "../users/schemas/user.schema";
-import { UsersService } from "../users/users.service";
+import type { UsersService } from "../users/users.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { RegisterDto } from "./dto/register.dto";
 
@@ -15,6 +16,7 @@ export class AuthService {
 	constructor(
 		private readonly usersService: UsersService,
 		private readonly jwtService: JwtService,
+		private readonly tenantsService: TenantsService,
 	) {}
 
 	async register(data: RegisterDto) {
@@ -27,15 +29,28 @@ export class AuthService {
 
 		const hashedPassword = await this.hashPassword(data.password);
 
+		// Create tenant
+		const tenant = await this.tenantsService.create(
+			`${data.name}'s Tenant`,
+			data.email.replace("@", "-").replace(".", "-"),
+			"", // ownerId will be set after user creation
+		);
+
 		const user = await this.usersService.create({
 			email: data.email,
 			password: hashedPassword,
 			name: data.name,
+			tenantId: tenant._id.toString(),
+		});
+
+		// Update tenant with ownerId
+		await this.tenantsService.update(tenant._id.toString(), {
+			ownerId: user._id,
 		});
 
 		const payload = {
-			userId: (user as UserDocument)._id.toString(),
-			tenantId: (user as UserDocument).tenantId.toString(),
+			userId: user._id.toString(),
+			tenantId: user.tenantId.toString(),
 		};
 
 		return {
