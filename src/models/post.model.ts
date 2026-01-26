@@ -9,6 +9,7 @@ export interface IPost {
 	tenantId: string;
 	category: string;
 	image?: string;
+	imageId?: string;
 	isPublic: boolean;
 }
 
@@ -50,6 +51,9 @@ const postSchema = new Schema<IPost>(
 			trim: true,
 		},
 		image: {
+			type: String,
+		},
+		imageId: {
 			type: String,
 		},
 		isPublic: {
