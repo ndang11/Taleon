@@ -38,18 +38,9 @@ export class TenantGuard implements CanActivate {
 
 		const request = context.switchToHttp().getRequest<CustomRequest>();
 
-		if (isPublic) {
-			// For public routes, try to get tenantId from query param 'tenant'
-			const tenantSlug = request.query?.tenant as string;
-			if (tenantSlug) {
-				// Optionally resolve tenantId from slug, but for now, assume tenantId is passed directly
-				request.tenantId = tenantSlug;
-			}
-			// If no tenant query, leave tenantId undefined for public access
-			return true;
-		}
+		if (isPublic) return true;
 
-		const user = request.user;
+		const request = context.switchToHttp().getRequest();
 
 		if (!request.user?.tenantId) {
 			throw new UnauthorizedException("Tenant context missing");
