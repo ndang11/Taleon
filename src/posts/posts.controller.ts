@@ -18,7 +18,7 @@ import { Public } from "../common/decorators/public.decorator";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
-import type { PostsService } from "./posts.service";
+import { PostsService } from "./posts.service";
 
 interface CustomRequest extends Request {
 	user: { id: string; tenantId: string };

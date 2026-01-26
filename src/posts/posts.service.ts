@@ -6,7 +6,7 @@ import {
 import { InjectModel } from "@nestjs/mongoose";
 import { type Model, Types } from "mongoose";
 import { generateSlug as generateSlugUtil } from "../common/utils/slug.util";
-import type { ImageKitService } from "../imagekit/imagekit.service";
+import { ImageKitService } from "../imagekit/imagekit.service";
 import { type IPost, Post } from "../models/post.model";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
