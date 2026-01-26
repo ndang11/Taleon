@@ -7,75 +7,69 @@ import {
 	Patch,
 	Post,
 	Query,
-	Request,
 	UploadedFile,
-	UseGuards,
 	UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { Public } from "../common/decorators/public.decorator";
-import { TenantGuard } from "../multi-tenant/tenant.guard";
+import type { TenantContextService } from "../multi-tenant/tenant-context.service";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
 import { PostsService } from "./posts.service";
 
-interface CustomRequest extends Request {
-	user: { userId: string; tenantId: string };
-	tenantId: string;
-}
-
 @Controller("posts")
-@UseGuards(JwtAuthGuard, TenantGuard)
 export class PostsController {
-	constructor(private readonly postsService: PostsService) {}
+	constructor(
+		private readonly postsService: PostsService,
+		private readonly tenantContext: TenantContextService,
+	) {}
 
 	@Post()
-	create(@Body() createPostDto: CreatePostDto, @Request() req: CustomRequest) {
+	create(@Body() createPostDto: CreatePostDto) {
 		return this.postsService.create(
 			createPostDto,
-			req.user.userId,
-			req.tenantId,
+			this.tenantContext.requiredUserId,
+			this.tenantContext.requiredTenantId,
 		);
 	}
 
 	@Public()
 	@Get()
-	findAll(@Request() req: CustomRequest, @Query("public") isPublic?: string) {
+	findAll(@Query("public") isPublic?: string) {
 		const publicFlag =
 			isPublic === "true" ? true : isPublic === "false" ? false : undefined;
-		return this.postsService.findAll(req.tenantId, publicFlag);
+		return this.postsService.findAll(this.tenantContext.tenantId, publicFlag);
 	}
 
 	@Public()
 	@Get(":id")
-	findOne(@Param("id") id: string, @Request() req: CustomRequest) {
-		return this.postsService.findOne(id, req.tenantId);
+	findOne(@Param("id") id: string) {
+		return this.postsService.findOne(id, this.tenantContext.tenantId);
 	}
 
 	@Public()
 	@Get("slug/:slug")
-	findBySlug(@Param("slug") slug: string, @Request() req: CustomRequest) {
-		return this.postsService.findBySlug(slug, req.tenantId);
+	findBySlug(@Param("slug") slug: string) {
+		return this.postsService.findBySlug(slug, this.tenantContext.tenantId);
 	}
 
 	@Patch(":id")
-	update(
-		@Param("id") id: string,
-		@Body() updatePostDto: UpdatePostDto,
-		@Request() req: CustomRequest,
-	) {
+	update(@Param("id") id: string, @Body() updatePostDto: UpdatePostDto) {
 		return this.postsService.update(
 			id,
 			updatePostDto,
-			req.user.userId,
-			req.tenantId,
+			this.tenantContext.requiredUserId,
+			this.tenantContext.requiredTenantId,
 		);
 	}
 
 	@Delete(":id")
-	remove(@Param("id") id: string, @Request() req: CustomRequest) {
-		return this.postsService.remove(id, req.user.userId, req.tenantId);
+	remove(@Param("id") id: string) {
+		return this.postsService.remove(
+			id,
+			this.tenantContext.requiredUserId,
+			this.tenantContext.requiredTenantId,
+		);
 	}
 
 	@Post("upload")

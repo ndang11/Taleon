@@ -3,6 +3,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { AuthModule } from "../auth/auth.module";
 import { ImageKitModule } from "../imagekit/imagekit.module";
 import { Post } from "../models/post.model";
+import { MultiTenantModule } from "../multi-tenant/multi-tenant.module";
 import { PostsController } from "./posts.controller";
 import { PostsService } from "./posts.service";
 
@@ -11,6 +12,7 @@ import { PostsService } from "./posts.service";
 		MongooseModule.forFeature([{ name: Post.name, schema: Post.schema }]),
 		ImageKitModule,
 		AuthModule,
+		MultiTenantModule,
 	],
 	controllers: [PostsController],
 	providers: [PostsService],
