@@ -6,7 +6,11 @@ import { CloudinaryService } from "./cloudinary.service";
 @Module({
 	imports: [ConfigModule],
 	providers: [
-		CloudinaryService,
+		{
+			provide: CloudinaryService,
+			useFactory: (cloudinaryInstance: any) => new CloudinaryService(cloudinaryInstance),
+			inject: ["CLOUDINARY"],
+		},
 		{
 			provide: "CLOUDINARY",
 			useFactory: (configService: ConfigService) => {

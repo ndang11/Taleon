@@ -2,18 +2,14 @@
 import { Readable } from "node:stream";
 
 import {
-	Inject,
-	Injectable,
 	InternalServerErrorException,
 } from "@nestjs/common";
 import type { UploadApiResponse } from "cloudinary";
 import type { Express } from "express";
 
-@Injectable()
 export class CloudinaryService {
 	constructor(
-		@Inject("CLOUDINARY")
-		private readonly cloudinary: typeof import("cloudinary").v2,
+		private readonly cloudinary: any,
 	) {}
 
 	/**

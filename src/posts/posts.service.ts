@@ -1,134 +1,125 @@
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	NotFoundException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import type { Model } from "mongoose";
-import type { JwtUser } from "../auth/interfaces/jwt-user.interface";
-import type { CloudinaryService } from "../cloudinary/cloudinary.service";
-import { generateSlug } from "../common/utils/slug.util";
-import type { CreatePostDto } from "./dto/create-post.dto";
-import type { UpdatePostDto } from "./dto/update-post.dto";
-import { Post } from "./schemas/post.schema";
+import { Model, Types } from "mongoose";
+import { Post, IPost } from "../models/post.model";
+import { CreatePostDto } from "./dto/create-post.dto";
+import { UpdatePostDto } from "./dto/update-post.dto";
+import { CloudinaryService } from "../cloudinary/cloudinary.service";
+import { generateSlug as generateSlugUtil } from "../common/utils/slug.util";
 
 @Injectable()
 export class PostsService {
-	constructor(
-		@InjectModel(Post.name)
-		private readonly postModel: Model<Post>,
-		private readonly cloudinaryService: CloudinaryService,
-	) {}
+  constructor(
+    @InjectModel(Post.name) private postModel: Model<IPost>,
+    private cloudinaryService: CloudinaryService,
+  ) {}
 
-	/** CREATE POST */
-	async create(dto: CreatePostDto, user: JwtUser, image?: any) {
-		if (!user || !user.tenantId) {
-			throw new BadRequestException("Invalid authenticated user");
-		}
+  generateSlug(title: string): string {
+    return generateSlugUtil(title);
+  }
 
-		// Upload image if provided
-		let uploadedImageUrl: string | undefined;
-		if (image) {
-			try {
-				uploadedImageUrl = await this.cloudinaryService.uploadImage(image);
-			} catch (_error) {
-				throw new BadRequestException("Failed to upload image");
-			}
-		}
+  async create(createPostDto: CreatePostDto, userId: string, tenantId: string): Promise<IPost> {
+    let slug = createPostDto.slug;
+    if (!slug) {
+      slug = generateSlugUtil(createPostDto.title);
+    }
 
-		try {
-			const post = await this.postModel.create({
-				...dto,
-				slug: generateSlug(dto.title),
-				tenantId: user.tenantId,
-				authorId: user.userId,
-				...(uploadedImageUrl && { imageUrl: uploadedImageUrl }),
-			});
+    // Check if slug already exists
+    const existingPost = await this.postModel.findOne({ slug });
+    if (existingPost) {
+      throw new ConflictException("Post with this slug already exists");
+    }
 
-			return post;
-		} catch (error: unknown) {
-			if (
-				error &&
-				typeof error === "object" &&
-				"code" in error &&
-				error.code === 11000
-			) {
-				throw new BadRequestException("A post with this title already exists");
-			}
-			if (
-				error &&
-				typeof error === "object" &&
-				"name" in error &&
-				error.name === "ValidationError" &&
-				"message" in error
-			) {
-				throw new BadRequestException(`Validation failed: ${error.message}`);
-			}
-			throw new BadRequestException("Failed to create post");
-		}
-	}
+    const post = new this.postModel({
+      ...createPostDto,
+      slug,
+      userId: new Types.ObjectId(userId),
+      tenantId,
+    });
 
-	/** GET ALL POSTS FOR TENANT */
-	async findAllByTenant(tenantId: string) {
-		return this.postModel.find({ tenantId }).sort({ createdAt: -1 });
-	}
+    return post.save();
+  }
 
-	/** GET SINGLE POST */
-	async findOne(id: string, tenantId: string) {
-		const post = await this.postModel
-			.findOne({ _id: id, tenantId })
-			.populate("authorId", "name");
+  async findAll(tenantId?: string, isPublic?: boolean): Promise<IPost[]> {
+    const query: any = {};
+    if (tenantId) {
+      query.tenantId = tenantId;
+    }
+    if (isPublic !== undefined) {
+      query.isPublic = isPublic;
+    } else if (!tenantId) {
+      // If no tenantId and no isPublic specified, default to public posts
+      query.isPublic = true;
+    }
+    return this.postModel.find(query).populate("userId", "name").sort({ createdAt: -1 });
+  }
 
-		if (!post) throw new NotFoundException("Post not found");
-		return post;
-	}
+  async findOne(id: string, tenantId?: string): Promise<IPost> {
+    const query: any = { _id: id };
+    if (tenantId) {
+      query.tenantId = tenantId;
+    } else {
+      query.isPublic = true;
+    }
+    const post = await this.postModel
+      .findOne(query)
+      .populate("userId", "name");
+    if (!post) {
+      throw new NotFoundException("Post not found");
+    }
+    return post;
+  }
 
-	/** UPDATE POST */
-	async update(
-		id: string,
-		dto: UpdatePostDto,
-		tenantId: string,
-		userId: string,
-		file?: any,
-	) {
-		const post = await this.findOne(id, tenantId);
+  async findBySlug(slug: string, tenantId?: string): Promise<IPost> {
+    const query: any = { slug };
+    if (tenantId) {
+      query.tenantId = tenantId;
+    } else {
+      // For public access, only return public posts
+      query.isPublic = true;
+    }
+    const post = await this.postModel
+      .findOne(query)
+      .populate("userId", "name");
+    if (!post) {
+      throw new NotFoundException("Post not found");
+    }
+    return post;
+  }
 
-		// Only author can edit
-		if (post.authorId.toString() !== userId) {
-			throw new ForbiddenException("You cannot edit this post");
-		}
+  async update(id: string, updatePostDto: UpdatePostDto, userId: string, tenantId: string): Promise<IPost> {
+    const post = await this.postModel.findOne({ _id: id, tenantId, userId });
+    if (!post) {
+      throw new NotFoundException("Post not found or you don't have permission to update it");
+    }
 
-		Object.assign(post, dto);
+    // Check slug uniqueness if updating slug
+    if (updatePostDto.slug && updatePostDto.slug !== post.slug) {
+      const existingPost = await this.postModel.findOne({ slug: updatePostDto.slug });
+      if (existingPost) {
+        throw new ConflictException("Post with this slug already exists");
+      }
+    }
 
-		// Update slug if title changed
-		if (dto.title) {
-			post.slug = generateSlug(dto.title);
-		}
+    Object.assign(post, updatePostDto);
+    return post.save();
+  }
 
-		// Update image if new file provided
-		if (file) {
-			try {
-				const uploadedImageUrl = await this.cloudinaryService.uploadImage(file);
-				post.imageUrl = uploadedImageUrl;
-			} catch (_error) {
-				throw new BadRequestException("Failed to upload image");
-			}
-		}
+  async remove(id: string, userId: string, tenantId: string): Promise<void> {
+    const post = await this.postModel.findOne({ _id: id, tenantId, userId });
+    if (!post) {
+      throw new NotFoundException("Post not found or you don't have permission to delete it");
+    }
 
-		return post.save();
-	}
+    // Delete associated image if exists
+    if (post.image) {
+      await this.cloudinaryService.deleteImage(post.image);
+    }
 
-	/** DELETE POST */
-	async remove(id: string, tenantId: string, userId: string) {
-		const post = await this.findOne(id, tenantId);
+    await this.postModel.deleteOne({ _id: id });
+  }
 
-		// Only author can delete
-		if (post.authorId.toString() !== userId) {
-			throw new ForbiddenException("You cannot delete this post");
-		}
-
-		await post.deleteOne();
-		return { message: "Post deleted successfully" };
-	}
+  async uploadImage(file: Express.Multer.File): Promise<string> {
+    return this.cloudinaryService.uploadImage(file);
+  }
 }

@@ -3,10 +3,10 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import type { JwtService } from "@nestjs/jwt";
+import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import type { UserDocument } from "../users/schemas/user.schema";
-import type { UsersService } from "../users/users.service";
+import { UsersService } from "../users/users.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { RegisterDto } from "./dto/register.dto";
 
@@ -35,6 +35,7 @@ export class AuthService {
 
 		const payload = {
 			userId: (user as UserDocument)._id.toString(),
+			tenantId: (user as UserDocument).tenantId.toString(),
 		};
 
 		return {
@@ -52,6 +53,7 @@ export class AuthService {
 
 		const payload = {
 			userId: user._id.toString(),
+			tenantId: user.tenantId.toString(),
 		};
 
 		return {
