@@ -1,8 +1,12 @@
-import type { ExecutionContext } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
+import {
+	type CanActivate,
+	type ExecutionContext,
+	Injectable,
+	UnauthorizedException,
+} from "@nestjs/common";
 import type { Reflector } from "@nestjs/core";
-import { AuthGuard } from "@nestjs/passport";
-import { lastValueFrom, type Observable } from "rxjs";
+import type { JwtService } from "@nestjs/jwt";
+import type { Request } from "express";
 import { IS_PUBLIC_KEY } from "../../common/decorators/public.decorator";
 
 @Injectable()
