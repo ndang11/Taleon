@@ -13,7 +13,6 @@ import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 		TenantsModule,
 		JwtModule.register({
 			secret: jwtConstants.secret,
-			signOptions: { expiresIn: "7d" },
 		}),
 	],
 	controllers: [AuthController],

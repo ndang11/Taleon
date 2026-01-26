@@ -6,7 +6,10 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
 import { CloudinaryModule } from "./cloudinary/cloudinary.module";
+import { CommentsModule } from "./comments/comments.module";
 import { HealthController } from "./health/health.controller";
+import { LikesModule } from "./likes/likes.module";
+import { MultiTenantModule } from "./multi-tenant/multi-tenant.module";
 import { PostsModule } from "./posts/posts.module";
 import { TenantsModule } from "./tenants/tenants.module";
 import { UsersModule } from "./users/users.module";
@@ -22,7 +25,10 @@ import { UsersModule } from "./users/users.module";
 		AuthModule,
 		UsersModule,
 		TenantsModule,
+		MultiTenantModule,
 		PostsModule,
+		CommentsModule,
+		LikesModule,
 		CloudinaryModule,
 	],
 	controllers: [AppController, HealthController],

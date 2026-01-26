@@ -9,7 +9,11 @@ export class TenantsService {
 		@InjectModel(Tenant.name) private tenantModel: Model<TenantDocument>,
 	) {}
 
-	async create(name: string, slug: string, ownerId: string): Promise<Tenant> {
+	async create(
+		name: string,
+		slug: string,
+		ownerId: string,
+	): Promise<TenantDocument> {
 		const createdTenant = new this.tenantModel({ name, slug, ownerId });
 		return createdTenant.save();
 	}
@@ -24,5 +28,9 @@ export class TenantsService {
 
 	async findBySlug(slug: string): Promise<Tenant | null> {
 		return this.tenantModel.findOne({ slug }).exec();
+	}
+
+	async update(id: string, data: Partial<Tenant>): Promise<Tenant | null> {
+		return this.tenantModel.findByIdAndUpdate(id, data, { new: true }).exec();
 	}
 }

@@ -1,5 +1,4 @@
 import {
-	BadRequestException,
 	Body,
 	Controller,
 	Delete,
@@ -7,60 +6,77 @@ import {
 	Param,
 	Patch,
 	Post,
+	Query,
+	Request,
 	UploadedFile,
 	UseGuards,
 	UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import type { Express } from "express";
-import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import type { JwtUser } from "../auth/interfaces/jwt-user.interface";
-import { AuthGuard } from "../common/guards/auth.guard";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { Public } from "../common/decorators/public.decorator";
+import { TenantGuard } from "../multi-tenant/tenant.guard";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
 import type { PostsService } from "./posts.service";
 
-@UseGuards(AuthGuard)
+interface CustomRequest extends Request {
+	user: { id: string; tenantId: string };
+	tenantId: string;
+}
+
 @Controller("posts")
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class PostsController {
 	constructor(private readonly postsService: PostsService) {}
+
 	@Post()
-	@UseInterceptors(FileInterceptor("image"))
-	async create(
-		@Body() dto: CreatePostDto,
-		@CurrentUser() user: JwtUser,
-		@UploadedFile() image?: Express.Multer.File,
-	) {
-		console.log("AUTH USER:", user);
-		if (!user || !user.tenantId) {
-			throw new BadRequestException("Invalid authenticated user");
-		}
-		return this.postsService.create(dto, user, image);
+	create(@Body() createPostDto: CreatePostDto, @Request() req: CustomRequest) {
+		return this.postsService.create(createPostDto, req.user.id, req.tenantId);
 	}
 
+	@Public()
 	@Get()
-	async findAll(@CurrentUser() user: JwtUser) {
-		return this.postsService.findAllByTenant(user.tenantId);
+	findAll(@Request() req: CustomRequest, @Query("public") isPublic?: string) {
+		const publicFlag =
+			isPublic === "true" ? true : isPublic === "false" ? false : undefined;
+		return this.postsService.findAll(req.tenantId, publicFlag);
 	}
 
+	@Public()
 	@Get(":id")
-	async findOne(@Param("id") id: string, @CurrentUser() user: JwtUser) {
-		return this.postsService.findOne(id, user.tenantId);
+	findOne(@Param("id") id: string, @Request() req: CustomRequest) {
+		return this.postsService.findOne(id, req.tenantId);
+	}
+
+	@Public()
+	@Get("slug/:slug")
+	findBySlug(@Param("slug") slug: string, @Request() req: CustomRequest) {
+		return this.postsService.findBySlug(slug, req.tenantId);
 	}
 
 	@Patch(":id")
-	@UseInterceptors(FileInterceptor("image"))
-	async update(
+	update(
 		@Param("id") id: string,
-		@Body() dto: UpdatePostDto,
-		@CurrentUser() user: JwtUser,
-		@UploadedFile() image?: Express.Multer.File,
+		@Body() updatePostDto: UpdatePostDto,
+		@Request() req: CustomRequest,
 	) {
-		return this.postsService.update(id, dto, user.tenantId, user.userId, image);
+		return this.postsService.update(
+			id,
+			updatePostDto,
+			req.user.id,
+			req.tenantId,
+		);
 	}
 
 	@Delete(":id")
-	async remove(@Param("id") id: string, @CurrentUser() user: JwtUser) {
-		return this.postsService.remove(id, user.tenantId, user.userId);
+	remove(@Param("id") id: string, @Request() req: CustomRequest) {
+		return this.postsService.remove(id, req.user.id, req.tenantId);
+	}
+
+	@Post("upload")
+	@UseInterceptors(FileInterceptor("file"))
+	uploadImage(@UploadedFile() file: Express.Multer.File) {
+		return this.postsService.uploadImage(file);
 	}
 }
