@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import type { Reflector } from "@nestjs/core";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
-import type { TenantsService } from "../tenants/tenants.service";
+import { TenantsService } from "../tenants/tenants.service";
 
 @Injectable()
 export class TenantGuard implements CanActivate {
