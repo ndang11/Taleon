@@ -7,11 +7,12 @@ import {
 import type { Reflector } from "@nestjs/core";
 import type { Request } from "express";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
+import type { TenantDocument } from "../tenants/schemas/tenant.schema";
 import type { TenantsService } from "../tenants/tenants.service";
 
 interface CustomRequest extends Request {
 	user?: { userId: string; tenantId: string };
-	tenant?: any;
+	tenant?: TenantDocument;
 }
 
 @Injectable()
