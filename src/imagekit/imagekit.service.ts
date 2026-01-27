@@ -1,8 +1,6 @@
-/// <reference types="multer" />
 
-import type ImageKit from "@imagekit/nodejs";
+import ImageKit from "@imagekit/nodejs";
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import type { Express } from "express";
 
 @Injectable()
 export class ImageKitService {

@@ -15,10 +15,10 @@ import { AuthGuard } from "@nestjs/passport";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "../common/decorators/public.decorator";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
-import type { TenantContextService } from "../multi-tenant/tenant-context.service";
-import type { CreatePostDto } from "./dto/create-post.dto";
-import type { UpdatePostDto } from "./dto/update-post.dto";
-import type { PostsService } from "./posts.service";
+import { PostsService } from "./posts.service";
+import { TenantContextService } from "src/multi-tenant/tenant-context.service";
+import { CreatePostDto } from "./dto/create-post.dto";
+import { UpdatePostDto } from "./dto/update-post.dto";
 
 @Controller("posts")
 export class PostsController {
