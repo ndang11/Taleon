@@ -20,9 +20,9 @@ export class Tenant {
 	@Prop({
 		type: Types.ObjectId,
 		ref: User.name,
-		required: true,
+		required: false,
 	})
-	ownerId!: Types.ObjectId;
+	ownerId?: Types.ObjectId;
 }
 
 export const TenantSchema = SchemaFactory.createForClass(Tenant);

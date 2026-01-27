@@ -30,11 +30,10 @@ export class AuthService {
 		const hashedPassword = await this.hashPassword(data.password);
 
 		// Create tenant
-		const tenant = await this.tenantsService.create(
-			`${data.name}'s Tenant`,
-			data.email.replace("@", "-").replace(".", "-"),
-			"", // ownerId will be set after user creation
-		);
+		const tenant = await this.tenantsService.create({
+			name: `${data.name}'s Tenant`,
+			slug: data.email.replace("@", "-").replace(".", "-"),
+		});
 
 		const user = await this.usersService.create({
 			email: data.email,
