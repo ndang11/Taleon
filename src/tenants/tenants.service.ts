@@ -15,11 +15,7 @@ export class TenantsService {
 		private readonly tenantModel: Model<TenantDocument>,
 	) {}
 
-	async create(data: {
-		name: string;
-		slug?: string;
-		ownerId?: string;
-	}): Promise<TenantDocument> {
+	async create(data: CreateTenantDto): Promise<TenantDocument> {
 		const {
 			name,
 			slug = name.toLowerCase().replace(/ /g, "-"),
@@ -29,7 +25,7 @@ export class TenantsService {
 		return createdTenant.save();
 	}
 
-	async findAll(): Promise<Tenant[]> {
+	async findAll(): Promise<TenantDocument[]> {
 		return this.tenantModel.find().exec();
 	}
 
@@ -47,33 +43,18 @@ export class TenantsService {
 		return tenant;
 	}
 
-	async create(data: {
-		name: string;
-		slug?: string;
-		ownerId?: string;
-	}): Promise<TenantDocument> {
-		const {
-			name,
-			slug = name.toLowerCase().replace(/ /g, "-"),
-			ownerId,
-		} = data;
-		const createdTenant = new this.tenantModel({ name, slug, ownerId });
-		return createdTenant.save();
-	}
-
-	async findAll(): Promise<Tenant[]> {
-		return this.tenantModel.find().exec();
-	}
-
-	async findOne(id: string): Promise<Tenant | null> {
+	async findOne(id: string): Promise<TenantDocument | null> {
 		return this.tenantModel.findById(id).exec();
 	}
 
-	async findBySlug(slug: string): Promise<Tenant | null> {
+	async findBySlug(slug: string): Promise<TenantDocument | null> {
 		return this.tenantModel.findOne({ slug }).exec();
 	}
 
-	async update(id: string, data: Partial<Tenant>): Promise<Tenant | null> {
+	async update(
+		id: string,
+		data: UpdateTenantDto,
+	): Promise<TenantDocument | null> {
 		return this.tenantModel.findByIdAndUpdate(id, data, { new: true }).exec();
 	}
 }

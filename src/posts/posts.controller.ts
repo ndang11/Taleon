@@ -8,11 +8,13 @@ import {
 	Post,
 	Query,
 	UploadedFile,
+	UseGuards,
 	UseInterceptors,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "../common/decorators/public.decorator";
+import { TenantGuard } from "../multi-tenant/tenant.guard";
 import type { TenantContextService } from "../multi-tenant/tenant-context.service";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
@@ -20,10 +22,6 @@ import type { PostsService } from "./posts.service";
 
 @Controller("posts")
 export class PostsController {
-	constructor(
-		private readonly postsService: PostsService,
-		private readonly tenantContext: TenantContextService,
-	) {}
 	constructor(
 		private readonly postsService: PostsService,
 		private readonly tenantContext: TenantContextService,
@@ -42,17 +40,13 @@ export class PostsController {
 	@Public()
 	@Get()
 	findAll(@Query("public") isPublic?: string) {
-	findAll(@Query("public") isPublic?: string) {
 		const publicFlag =
 			isPublic === "true" ? true : isPublic === "false" ? false : undefined;
-		return this.postsService.findAll(this.tenantContext.tenantId, publicFlag);
 		return this.postsService.findAll(this.tenantContext.tenantId, publicFlag);
 	}
 
 	@Public()
 	@Get(":id")
-	findOne(@Param("id") id: string) {
-		return this.postsService.findOne(id, this.tenantContext.tenantId);
 	findOne(@Param("id") id: string) {
 		return this.postsService.findOne(id, this.tenantContext.tenantId);
 	}
@@ -64,7 +58,6 @@ export class PostsController {
 	}
 
 	@Patch(":id")
-	update(@Param("id") id: string, @Body() updatePostDto: UpdatePostDto) {
 	update(@Param("id") id: string, @Body() updatePostDto: UpdatePostDto) {
 		return this.postsService.update(
 			id,
