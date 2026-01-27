@@ -16,7 +16,7 @@ import { Public } from "../common/decorators/public.decorator";
 import type { TenantContextService } from "../multi-tenant/tenant-context.service";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
-import { PostsService } from "./posts.service";
+import type { PostsService } from "./posts.service";
 
 @Controller("posts")
 export class PostsController {

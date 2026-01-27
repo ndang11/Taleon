@@ -1,37 +1,42 @@
-import { Controller, Get, Param, Post } from "@nestjs/common";
-import type { TenantContextService } from "../multi-tenant/tenant-context.service";
+import {
+	Controller,
+	Get,
+	Param,
+	Post,
+	Request,
+	UseGuards,
+} from "@nestjs/common";
+import type { Request as ExpressRequest } from "express";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { TenantGuard } from "../multi-tenant/tenant.guard";
 import type { LikesService } from "./likes.service";
 
+interface CustomRequest extends ExpressRequest {
+	user: { userId: string; tenantId: string };
+	tenantId: string;
+}
+
 @Controller("likes")
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class LikesController {
-	constructor(
-		private readonly likesService: LikesService,
-		private readonly tenantContext: TenantContextService,
-	) {}
+	constructor(private readonly likesService: LikesService) {}
 
 	@Post("post/:postId/toggle")
-	toggleLike(@Param("postId") postId: string) {
-		return this.likesService.toggleLike(
-			postId,
-			this.tenantContext.requiredUserId,
-			this.tenantContext.requiredTenantId,
-		);
+	toggleLike(@Param("postId") postId: string, @Request() req: CustomRequest) {
+		return this.likesService.toggleLike(postId, req.user.userId, req.tenantId);
 	}
 
 	@Get("post/:postId/count")
-	getLikeCount(@Param("postId") postId: string) {
-		return this.likesService.getLikeCount(
-			postId,
-			this.tenantContext.requiredTenantId,
-		);
+	getLikeCount(@Param("postId") postId: string, @Request() req: CustomRequest) {
+		return this.likesService.getLikeCount(postId, req.tenantId);
 	}
 
 	@Get("post/:postId/status")
-	hasUserLiked(@Param("postId") postId: string) {
+	hasUserLiked(@Param("postId") postId: string, @Request() req: CustomRequest) {
 		return this.likesService.hasUserLiked(
 			postId,
-			this.tenantContext.requiredUserId,
-			this.tenantContext.requiredTenantId,
+			req.user.userId,
+			req.tenantId,
 		);
 	}
 }

@@ -3,11 +3,11 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import type { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import { TenantsService } from "../tenants/tenants.service";
+import type { TenantsService } from "../tenants/tenants.service";
 import type { UserDocument } from "../users/schemas/user.schema";
-import { UsersService } from "../users/users.service";
+import type { UsersService } from "../users/users.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { RegisterDto } from "./dto/register.dto";
 
