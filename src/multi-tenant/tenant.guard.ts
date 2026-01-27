@@ -4,9 +4,9 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import type { Reflector } from "@nestjs/core";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
 import { TenantsService } from "../tenants/tenants.service";
+import { Reflector } from "@nestjs/core";
 
 @Injectable()
 export class TenantGuard implements CanActivate {
