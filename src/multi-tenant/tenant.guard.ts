@@ -5,8 +5,15 @@ import {
 	UnauthorizedException,
 } from "@nestjs/common";
 import type { Reflector } from "@nestjs/core";
+import type { Request } from "express";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
+import type { TenantDocument } from "../tenants/schemas/tenant.schema";
 import type { TenantsService } from "../tenants/tenants.service";
+
+interface CustomRequest extends Request {
+	user?: { userId: string; tenantId: string };
+	tenant?: TenantDocument;
+}
 
 @Injectable()
 export class TenantGuard implements CanActivate {
@@ -21,9 +28,9 @@ export class TenantGuard implements CanActivate {
 			context.getClass(),
 		]);
 
-		if (isPublic) return true;
+		const request = context.switchToHttp().getRequest<CustomRequest>();
 
-		const request = context.switchToHttp().getRequest();
+		if (isPublic) return true;
 
 		if (!request.user?.tenantId) {
 			throw new UnauthorizedException("Tenant context missing");

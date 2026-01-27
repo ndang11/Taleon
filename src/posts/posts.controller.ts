@@ -52,9 +52,9 @@ export class PostsController {
 	}
 
 	@Public()
-	@Get("/slug/:slug")
-	getPostBySlug(@Param("slug") slug: string) {
-		return this.postsService.findBySlug(slug);
+	@Get("slug/:slug")
+	findBySlug(@Param("slug") slug: string) {
+		return this.postsService.findBySlug(slug, this.tenantContext.tenantId);
 	}
 
 	@Patch(":id")
