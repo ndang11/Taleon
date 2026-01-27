@@ -23,6 +23,9 @@ export class Tenant {
 		required: false,
 	})
 	ownerId?: Types.ObjectId;
+
+	@Prop({ default: true })
+	isActive?: boolean;
 }
 
 export const TenantSchema = SchemaFactory.createForClass(Tenant);
