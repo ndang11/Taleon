@@ -5,22 +5,13 @@ import {
 	UnauthorizedException,
 } from "@nestjs/common";
 import type { Reflector } from "@nestjs/core";
-import type {
-	ParamsDictionary,
-	Query,
-	Request,
-} from "express-serve-static-core";
+import type { Request } from "express";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
+import type { TenantsService } from "../tenants/tenants.service";
 
-interface User {
-	userId: string;
-	tenantId: string;
-}
-
-interface CustomRequest
-	extends Request<ParamsDictionary, unknown, unknown, Query> {
-	user?: User;
-	tenantId?: string;
+interface CustomRequest extends Request {
+	user?: { userId: string; tenantId: string };
+	tenant?: any;
 }
 
 @Injectable()
@@ -39,8 +30,6 @@ export class TenantGuard implements CanActivate {
 		const request = context.switchToHttp().getRequest<CustomRequest>();
 
 		if (isPublic) return true;
-
-		const request = context.switchToHttp().getRequest();
 
 		if (!request.user?.tenantId) {
 			throw new UnauthorizedException("Tenant context missing");
