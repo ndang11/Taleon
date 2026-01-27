@@ -3,12 +3,20 @@ import { InjectModel } from "@nestjs/mongoose";
 import type { Model } from "mongoose";
 import { User, type UserDocument } from "./schemas/user.schema";
 
+/**
+ * Service for managing user operations.
+ */
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectModel(User.name) private readonly userModel: Model<UserDocument>,
 	) {}
 
+	/**
+	 * Creates a new user.
+	 * @param data The user data to create.
+	 * @returns The created user document.
+	 */
 	async create(data: {
 		name: string;
 		email: string;
@@ -19,21 +27,43 @@ export class UsersService {
 		return user.save();
 	}
 
-	async findAll(): Promise<User[]> {
+	/**
+	 * Retrieves all users.
+	 * @returns An array of user documents.
+	 */
+	async findAll(): Promise<UserDocument[]> {
 		return this.userModel.find().exec();
 	}
 
-	async findOne(id: string): Promise<User> {
+	/**
+	 * Retrieves a user by ID.
+	 * @param id The user ID.
+	 * @returns The user document.
+	 * @throws NotFoundException if the user is not found.
+	 */
+	async findOne(id: string): Promise<UserDocument> {
 		const user = await this.userModel.findById(id).exec();
 		if (!user) throw new NotFoundException("User not found");
 		return user;
 	}
 
+	/**
+	 * Retrieves a user by email, including the password field.
+	 * @param email The user email.
+	 * @returns The user document or null if not found.
+	 */
 	async findByEmail(email: string): Promise<UserDocument | null> {
 		return this.userModel.findOne({ email }).select("+password").exec();
 	}
 
-	async update(id: string, data: Partial<User>): Promise<User> {
+	/**
+	 * Updates a user by ID.
+	 * @param id The user ID.
+	 * @param data The data to update.
+	 * @returns The updated user document.
+	 * @throws NotFoundException if the user is not found.
+	 */
+	async update(id: string, data: Partial<User>): Promise<UserDocument> {
 		const user = await this.userModel
 			.findByIdAndUpdate(id, data, { new: true })
 			.exec();
@@ -42,7 +72,13 @@ export class UsersService {
 		return user;
 	}
 
-	async remove(id: string): Promise<User> {
+	/**
+	 * Removes a user by ID.
+	 * @param id The user ID.
+	 * @returns The deleted user document.
+	 * @throws NotFoundException if the user is not found.
+	 */
+	async remove(id: string): Promise<UserDocument> {
 		const user = await this.userModel.findByIdAndDelete(id).exec();
 		if (!user) throw new NotFoundException("User not found");
 		return user;

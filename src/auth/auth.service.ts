@@ -11,6 +11,9 @@ import type { UsersService } from "../users/users.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { RegisterDto } from "./dto/register.dto";
 
+/**
+ * Service for handling authentication operations including registration and login.
+ */
 @Injectable()
 export class AuthService {
 	constructor(
@@ -19,6 +22,12 @@ export class AuthService {
 		private readonly tenantsService: TenantsService,
 	) {}
 
+	/**
+	 * Registers a new user and creates a tenant for them.
+	 * @param data The registration data.
+	 * @returns An object containing the access token.
+	 * @throws BadRequestException if the email is already in use.
+	 */
 	async register(data: RegisterDto) {
 		const emailInUse = await this.usersService.findByEmail(data.email);
 		if (emailInUse) {
@@ -44,7 +53,7 @@ export class AuthService {
 
 		// Update tenant with ownerId
 		await this.tenantsService.update(tenant._id.toString(), {
-			ownerId: user._id,
+			ownerId: user._id.toString(),
 		});
 
 		const payload = {
@@ -57,6 +66,12 @@ export class AuthService {
 		};
 	}
 
+	/**
+	 * Logs in a user with email and password.
+	 * @param credentials The login credentials.
+	 * @returns An object containing the access token.
+	 * @throws UnauthorizedException if credentials are invalid.
+	 */
 	async login(credentials: LoginDto) {
 		const user = await this.usersService.findByEmail(credentials.email);
 		if (!user) {
@@ -75,11 +90,22 @@ export class AuthService {
 		};
 	}
 
+	/**
+	 * Hashes a password using bcrypt.
+	 * @param password The plain password.
+	 * @returns The hashed password.
+	 */
 	private async hashPassword(password: string): Promise<string> {
 		const SALT_ROUNDS = 12;
 		return bcrypt.hash(password, SALT_ROUNDS);
 	}
 
+	/**
+	 * Verifies a plain password against a hashed password.
+	 * @param plain The plain password.
+	 * @param hashed The hashed password.
+	 * @throws UnauthorizedException if passwords do not match.
+	 */
 	private async verifyPassword(plain: string, hashed: string): Promise<void> {
 		const isValid = await bcrypt.compare(plain, hashed);
 		if (!isValid) {
@@ -87,6 +113,11 @@ export class AuthService {
 		}
 	}
 
+	/**
+	 * Generates an access token for a user with tenant information.
+	 * @param user The user document.
+	 * @returns An object containing the access token.
+	 */
 	async loginWithTenant(user: UserDocument) {
 		const payload = {
 			userId: user._id.toString(),
