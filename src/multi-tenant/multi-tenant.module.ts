@@ -6,6 +6,6 @@ import { TenantContextService } from "./tenant-context.service";
 @Module({
 	imports: [TenantsModule],
 	providers: [TenantGuard, TenantService, TenantContextService],
-	exports: [TenantGuard, TenantService, TenantContextService],
+	exports: [TenantGuard, TenantService, TenantContextService, TenantsModule],
 })
 export class MultiTenantModule {}
