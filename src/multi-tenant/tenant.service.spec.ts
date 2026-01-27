@@ -1,4 +1,4 @@
-import type { Model } from "mongoose";
+import  { Model } from "mongoose";
 import { TenantService } from "./tenant.service";
 
 describe("TenantService", () => {

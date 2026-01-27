@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post } from "@nestjs/common";
-import type { TenantContextService } from "../multi-tenant/tenant-context.service";
-import type { LikesService } from "./likes.service";
+import { LikesService } from "./likes.service";
+import { TenantContextService } from "src/multi-tenant/tenant-context.service";
 
 @Controller("likes")
 export class LikesController {

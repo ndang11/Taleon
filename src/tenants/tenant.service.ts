@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import type { Model, Types } from "mongoose";
-import { Tenant, type TenantDocument } from "./schemas/tenant.schema";
+import  { Model, Types } from "mongoose";
+import { Tenant, TenantDocument,  } from "./schemas/tenant.schema";
 
 @Injectable()
 export class TenantsService {

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { type Model, Types } from "mongoose";
-import { Comment, type IComment } from "../models/comment.model";
-import type { CreateCommentDto } from "./dto/create-comment.dto";
+import { Model, Types } from "mongoose";
+import { IComment } from "src/models/comment.model";
+import { CreateCommentDto } from "./dto/create-comment.dto";
 
 @Injectable()
 export class CommentsService {

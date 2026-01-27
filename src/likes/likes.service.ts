@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { type Model, Types } from "mongoose";
-import { type ILike, Like } from "../models/like.model";
+import {  Model, Types } from "mongoose";
+import {  ILike, Like } from "../models/like.model";
 
 @Injectable()
 export class LikesService {

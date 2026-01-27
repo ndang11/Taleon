@@ -1,6 +1,6 @@
 import { Inject, Injectable, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
-import type { Request } from "express";
+import  { Request } from "express";
 
 interface CustomRequest extends Request {
 	user?: { userId: string; tenantId: string };

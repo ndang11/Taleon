@@ -1,6 +1,6 @@
 import {
-	type CanActivate,
-	type ExecutionContext,
+	CanActivate,
+	ExecutionContext,
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
