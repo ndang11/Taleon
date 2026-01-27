@@ -1,58 +1,37 @@
 import {
 	type CanActivate,
 	type ExecutionContext,
-	ForbiddenException,
 	Injectable,
+	UnauthorizedException,
 } from "@nestjs/common";
 import type { Reflector } from "@nestjs/core";
-import type {
-	ParamsDictionary,
-	Query,
-	Request,
-} from "express-serve-static-core";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
-
-interface User {
-	userId: string;
-	tenantId: string;
-}
-
-interface CustomRequest
-	extends Request<ParamsDictionary, unknown, unknown, Query> {
-	user?: User;
-	tenantId?: string;
-}
+import type { TenantsService } from "../tenants/tenants.service";
 
 @Injectable()
 export class TenantGuard implements CanActivate {
-	constructor(private readonly reflector: Reflector) {}
+	constructor(
+		private readonly tenantsService: TenantsService,
+		private readonly reflector: Reflector,
+	) {}
 
-	canActivate(context: ExecutionContext): boolean {
+	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
 			context.getHandler(),
 			context.getClass(),
 		]);
 
-		const request = context.switchToHttp().getRequest<CustomRequest>();
+		if (isPublic) return true;
 
-		if (isPublic) {
-			// For public routes, try to get tenantId from query param 'tenant'
-			const tenantSlug = request.query?.tenant as string;
-			if (tenantSlug) {
-				// Optionally resolve tenantId from slug, but for now, assume tenantId is passed directly
-				request.tenantId = tenantSlug;
-			}
-			// If no tenant query, leave tenantId undefined for public access
-			return true;
+		const request = context.switchToHttp().getRequest();
+
+		if (!request.user?.tenantId) {
+			throw new UnauthorizedException("Tenant context missing");
 		}
 
-		const user = request.user;
+		const tenant = await this.tenantsService.findById(request.user.tenantId);
 
-		if (!user || !user.tenantId) {
-			throw new ForbiddenException("Tenant ID not found in user");
-		}
-
-		request.tenantId = user.tenantId;
+		request.tenant = tenant;
 		return true;
 	}
 }

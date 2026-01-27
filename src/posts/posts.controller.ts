@@ -8,10 +8,13 @@ import {
 	Post,
 	Query,
 	UploadedFile,
+	UseGuards,
 	UseInterceptors,
 } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "../common/decorators/public.decorator";
+import { TenantGuard } from "../multi-tenant/tenant.guard";
 import type { TenantContextService } from "../multi-tenant/tenant-context.service";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdatePostDto } from "./dto/update-post.dto";
@@ -24,6 +27,7 @@ export class PostsController {
 		private readonly tenantContext: TenantContextService,
 	) {}
 
+	@UseGuards(AuthGuard("jwt"), TenantGuard)
 	@Post()
 	create(@Body() createPostDto: CreatePostDto) {
 		return this.postsService.create(
@@ -48,9 +52,9 @@ export class PostsController {
 	}
 
 	@Public()
-	@Get("slug/:slug")
-	findBySlug(@Param("slug") slug: string) {
-		return this.postsService.findBySlug(slug, this.tenantContext.tenantId);
+	@Get("/slug/:slug")
+	getPostBySlug(@Param("slug") slug: string) {
+		return this.postsService.findBySlug(slug);
 	}
 
 	@Patch(":id")
