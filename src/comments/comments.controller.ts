@@ -8,7 +8,7 @@ import {
 	Request,
 	UseGuards,
 } from "@nestjs/common";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
 import { CommentsService } from "./comments.service";
 import  { CreateCommentDto } from "./dto/create-comment.dto";

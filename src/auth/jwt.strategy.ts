@@ -1,30 +1,35 @@
-import { Injectable } from "@nestjs/common";
-import { PassportStrategy } from "@nestjs/passport";
-import { ExtractJwt, Strategy } from "passport-jwt";
-import { jwtConstants } from "./constants";
-
-interface JwtPayload {
-	sub: string;
-	email?: string;
-	tenantId?: string;
-}
+// src/auth/jwt.strategy.ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { jwtConstants } from './constants';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-	constructor() {
-		super({
-			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-			ignoreExpiration: false,
-			secretOrKey: jwtConstants.secret,
-		});
-	}
+  constructor() {
+    super({
+      // 1. We now check BOTH the Header AND the Cookie
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (request: Request) => {
+          return request?.cookies?.access_token || null;
+        },
+      ]),
+      ignoreExpiration: false,
+      secretOrKey: jwtConstants.secret,
+    });
+  }
 
-	async validate(payload: JwtPayload) {
-		return {
-			id: payload.sub,
-			email: payload.email,
-			tenantId: payload.tenantId || payload.tenantId,
-			userId: payload.sub,
-		};
-	}
+  async validate(payload: any) {
+    if (!payload) {
+      throw new UnauthorizedException();
+    }
+    // This is what will be attached to req.user
+    return { 
+      userId: payload.sub, 
+      email: payload.email, 
+      tenantId: payload.tenantId 
+    };
+  }
 }

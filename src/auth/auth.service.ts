@@ -1,133 +1,112 @@
-import {
-	BadRequestException,
-	Injectable,
-	UnauthorizedException,
-} from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import * as bcrypt from "bcrypt";
-import { TenantsService } from "src/tenants/tenants.service";
-import { UsersService } from "src/users/users.service";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
-import { UserDocument } from "src/users/user.entity";
+import { Injectable, ConflictException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+import slugify from 'slugify';
+import { User, UserDocument } from '../schemas/users.schema';
+import { Tenant, TenantDocument } from '../schemas/tenants.schema';
+import { RegisterDto } from '../dto/register.dto';
+import { LoginDto } from 'src/dto/login.dto';
 
-
-/**
- * Service for handling authentication operations including registration and login.
- */
 @Injectable()
 export class AuthService {
-	constructor(
-		private readonly usersService: UsersService,
-		private readonly jwtService: JwtService,
-		private readonly tenantsService: TenantsService,
-	) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Tenant.name) private tenantModel: Model<TenantDocument>,
+    @InjectConnection() private readonly connection: Connection,
+    private jwtService: JwtService,
+  ) {}
 
-	/**
-	 * Registers a new user and creates a tenant for them.
-	 * @param data The registration data.
-	 * @returns An object containing the access token.
-	 * @throws BadRequestException if the email is already in use.
-	 */
-	async register(data: RegisterDto) {
-		const emailInUse = await this.usersService.findByEmail(data.email);
-		if (emailInUse) {
-			throw new BadRequestException(
-				"An account with this email already exists",
-			);
-		}
+  async register(dto: RegisterDto) {
+    const { email, password, name, blogName } = dto;
 
-		const hashedPassword = await this.hashPassword(data.password);
+    // 1. Pre-flight checks
+    const existingUser = await this.userModel.findOne({ email });
+    if (existingUser) throw new ConflictException('Email already registered');
 
-		// Create tenant
-		const tenant = await this.tenantsService.create({
-			name: `${data.name}'s Tenant`,
-			slug: data.email.replace("@", "-").replace(".", "-"),
-		});
+    const slug = slugify(blogName, { lower: true, strict: true });
+    const existingTenant = await this.tenantModel.findOne({ slug });
+    if (existingTenant) throw new ConflictException('Blog name/slug already taken');
 
-		const user = await this.usersService.create({
-			email: data.email,
-			password: hashedPassword,
-			name: data.name,
-			tenantId: tenant._id.toString(),
-		});
+    // 2. Start the Session for Transaction
+    const session = await this.connection.startSession();
+    session.startTransaction();
 
-		// Update tenant with ownerId
-		await this.tenantsService.update(tenant._id.toString(), {
-			ownerId: user._id.toString(),
-		});
+    try {
+      // 3. Create Tenant
+      const createdTenants = await this.tenantModel.create(
+        [{ name: blogName, slug }],
+        { session }
+      );
+      const newTenant = createdTenants[0];
+      if (!newTenant) throw new InternalServerErrorException('Failed to create tenant');
 
-		const payload = {
-			userId: user._id.toString(),
-			tenantId: user.tenantId.toString(),
-		};
+      // 4. Create User
+      const hashedPassword = await bcrypt.hash(password, 12);
+      const createdUsers = await this.userModel.create(
+        [{
+          name,
+          email,
+          password: hashedPassword,
+          tenantId: newTenant._id
+        }],
+        { session }
+      );
+      const newUser = createdUsers[0];
+      if (!newUser) throw new InternalServerErrorException('Failed to create user');
 
-		return {
-			accessToken: this.jwtService.sign(payload),
-		};
-	}
+      newTenant.ownerId = newUser._id;
+      await newTenant.save({ session });
 
-	/**
-	 * Logs in a user with email and password.
-	 * @param credentials The login credentials.
-	 * @returns An object containing the access token.
-	 * @throws UnauthorizedException if credentials are invalid.
-	 */
-	async login(credentials: LoginDto) {
-		const user = await this.usersService.findByEmail(credentials.email);
-		if (!user) {
-			throw new UnauthorizedException("Email or password is incorrect");
-		}
+      await session.commitTransaction();
 
-		await this.verifyPassword(credentials.password, user.password);
+      return this.generateToken(newUser);
+      
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
 
-		const payload = {
-			userId: user._id.toString(),
-			tenantId: user.tenantId.toString(),
-		};
+  private generateToken(user: UserDocument) {
+    const payload = { 
+      sub: user._id.toString(), 
+      email: user.email, 
+      tenantId: user.tenantId.toString() 
+    };
+    
+    return {
+      accessToken: this.jwtService.sign(payload),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        tenantId: user.tenantId
+      }
+    };
+  }
 
-		return {
-			accessToken: this.jwtService.sign(payload),
-		};
-	}
 
-	/**
-	 * Hashes a password using bcrypt.
-	 * @param password The plain password.
-	 * @returns The hashed password.
-	 */
-	private async hashPassword(password: string): Promise<string> {
-		const SALT_ROUNDS = 12;
-		return bcrypt.hash(password, SALT_ROUNDS);
-	}
+async login(credentials: LoginDto) {
+  const { email, password } = credentials;
 
-	/**
-	 * Verifies a plain password against a hashed password.
-	 * @param plain The plain password.
-	 * @param hashed The hashed password.
-	 * @throws UnauthorizedException if passwords do not match.
-	 */
-	private async verifyPassword(plain: string, hashed: string): Promise<void> {
-		const isValid = await bcrypt.compare(plain, hashed);
-		if (!isValid) {
-			throw new UnauthorizedException("Email or password is incorrect");
-		}
-	}
+  const user = await this.userModel
+    .findOne({ email })
+    .select('+password') 
+    .exec();
 
-	/**
-	 * Generates an access token for a user with tenant information.
-	 * @param user The user document.
-	 * @returns An object containing the access token.
-	 */
-	async loginWithTenant(user: UserDocument) {
-		const payload = {
-			userId: user._id.toString(),
-			tenantId: user.tenantId.toString(),
-			email: user.email,
-		};
+  if (!user) {
+    throw new UnauthorizedException('Invalid email or password');
+  }
 
-		return {
-			accessToken: this.jwtService.sign(payload),
-		};
-	}
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    throw new UnauthorizedException('Invalid email or password');
+  }
+
+  return this.generateToken(user);
+}
 }

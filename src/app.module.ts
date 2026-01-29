@@ -5,7 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
-import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { CommentsModule } from "./comments/comments.module";
 import { HealthController } from "./health/health.controller";
 import { ImageKitModule } from "./imagekit/imagekit.module";

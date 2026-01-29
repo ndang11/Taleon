@@ -1,145 +1,51 @@
-import {
-	ConflictException,
-	Injectable,
-	NotFoundException,
-} from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import {  Model, Types,  } from "mongoose";
-import { generateSlug as generateSlugUtil } from "../common/utils/slug.util";
-import  { ImageKitService } from "../imagekit/imagekit.service";
-import { IPost, Post } from "src/models/post.model";
-import { CreatePostDto } from "./dto/create-post.dto";
-import { UpdatePostDto } from "./dto/update-post.dto";
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { Post, PostDocument } from 'src/schemas/post.schema';
+import { TenantBaseService } from '../common/services/tenant-base.service';
+import slugify from 'slugify';
+import * as crypto from 'crypto';
+import { CreatePostDto } from './dto/create-post.dto';
+import { PostContent } from 'src/interfaces/post.type';
+import { calculateReadingTime } from 'src/lib/post-helper';
 
 @Injectable()
-export class PostsService {
-	constructor(
-		@InjectModel(Post.name) private postModel: Model<IPost>,
-		private imagekitService: ImageKitService,
-	) {}
+export class PostsService extends TenantBaseService<PostDocument> {
+  constructor(@InjectModel(Post.name) private postModel: Model<PostDocument>) {
+    super(postModel);
+  }
 
-	generateSlug(title: string): string {
-		return generateSlugUtil(title);
-	}
+  async initializeDraft(tenantId: string, userId: string, dto: CreatePostDto): Promise<PostDocument> {
+    const shortId = crypto.randomBytes(6).toString('hex');
+    const baseSlug = slugify(dto.title, { lower: true, strict: true });
+    const fullSlug = `${baseSlug}-${shortId}`;
 
-	async create(
-		createPostDto: CreatePostDto,
-		userId: string,
-		tenantId: string,
-	): Promise<IPost> {
-		let slug = createPostDto.slug;
-		if (!slug) {
-			slug = generateSlugUtil(createPostDto.title);
-		}
+    const newPost = new this.postModel({
+      ...dto,
+      slug: fullSlug,
+      content: { blocks: [] },
+      authorId: new Types.ObjectId(userId),
+      tenantId: new Types.ObjectId(tenantId),
+      status: 'draft',
+    });
 
-		// Check if slug already exists
-		const existingPost = await this.postModel.findOne({ slug });
-		if (existingPost) {
-			throw new ConflictException("Post with this slug already exists");
-		}
+    return newPost.save();
+  }
 
-		const post = new this.postModel({
-			...createPostDto,
-			slug,
-			userId: new Types.ObjectId(userId),
-			tenantId,
-		});
 
-		return post.save();
-	}
+async updateDraft(tenantId: string, postId: string, data: { content?: any; title?: string }) {
+    let updatePayload: any = { ...data };
 
-	async findAll(tenantId?: string, isPublic?: boolean): Promise<IPost[]> {
-		const query: Record<string, unknown> = {};
-		if (tenantId) {
-			query.tenantId = tenantId;
-		}
-		if (isPublic !== undefined) {
-			query.isPublic = isPublic;
-		} else if (!tenantId) {
-			// If no tenantId and no isPublic specified, default to public posts
-			query.isPublic = true;
-		}
-		return this.postModel
-			.find(query)
-			.populate("userId", "name")
-			.sort({ createdAt: -1 });
-	}
+    if (data.content && data.content.content) { 
+      const { words, minutes } = calculateReadingTime(data.content);
+      updatePayload.wordCount = words;
+      updatePayload.readingTime = minutes;
+    }
 
-	async findOne(id: string, tenantId?: string): Promise<IPost> {
-		const query: Record<string, unknown> = { _id: id };
-		if (tenantId) {
-			query.tenantId = tenantId;
-		} else {
-			query.isPublic = true;
-		}
-		const post = await this.postModel.findOne(query).populate("userId", "name");
-		if (!post) {
-			throw new NotFoundException("Post not found");
-		}
-		return post;
-	}
-
-	async findBySlug(slug: string, tenantId?: string): Promise<IPost> {
-		const query: Record<string, unknown> = { slug };
-		if (tenantId) {
-			query.tenantId = tenantId;
-		} else {
-			// For public access, only return public posts
-			query.isPublic = true;
-		}
-		const post = await this.postModel.findOne(query).populate("userId", "name");
-		if (!post) {
-			throw new NotFoundException("Post not found");
-		}
-		return post;
-	}
-
-	async update(
-		id: string,
-		updatePostDto: UpdatePostDto,
-		userId: string,
-		tenantId: string,
-	): Promise<IPost> {
-		const post = await this.postModel.findOne({ _id: id, tenantId, userId });
-		if (!post) {
-			throw new NotFoundException(
-				"Post not found or you don't have permission to update it",
-			);
-		}
-
-		// Check slug uniqueness if updating slug
-		if (updatePostDto.slug && updatePostDto.slug !== post.slug) {
-			const existingPost = await this.postModel.findOne({
-				slug: updatePostDto.slug,
-			});
-			if (existingPost) {
-				throw new ConflictException("Post with this slug already exists");
-			}
-		}
-
-		Object.assign(post, updatePostDto);
-		return post.save();
-	}
-
-	async remove(id: string, userId: string, tenantId: string): Promise<void> {
-		const post = await this.postModel.findOne({ _id: id, tenantId, userId });
-		if (!post) {
-			throw new NotFoundException(
-				"Post not found or you don't have permission to delete it",
-			);
-		}
-
-		// Delete associated image if exists
-		if (post.imageId) {
-			await this.imagekitService.deleteImage(post.imageId);
-		}
-
-		await this.postModel.deleteOne({ _id: id });
-	}
-
-	async uploadImage(
-		file: Express.Multer.File,
-	): Promise<{ url: string; fileId: string }> {
-		return this.imagekitService.uploadImage(file);
-	}
+    return this.postModel.findOneAndUpdate(
+        { _id: postId, tenantId }, 
+        updatePayload, 
+        { new: true }
+    );
+}
 }

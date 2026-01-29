@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import type { Model } from "mongoose";
-import { User, type UserDocument } from "./schemas/user.schema";
+import { User, UserDocument } from "src/schemas/users.schema";
 
 /**
  * Service for managing user operations.

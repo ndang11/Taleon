@@ -1,14 +1,14 @@
 import { Body, Controller, Post, Res } from "@nestjs/common";
 import { Public } from "../common/decorators/public.decorator";
 import { AuthService } from "./auth.service";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
 import { type Response } from "express";
+import { RegisterDto } from "src/dto/register.dto";
+import { LoginDto } from "src/dto/login.dto";
 
 @Controller("auth")
 export class AuthController {
 	constructor(private readonly authService: AuthService
-	) {}
+	) { }
 
 	@Public()
 	@Post("register")
@@ -26,19 +26,19 @@ export class AuthController {
 		};
 	}
 
-	@Public()
 	@Post("login")
 	async login(
 		@Body() dto: LoginDto,
 		@Res({ passthrough: true }) res: Response,
 	) {
-		const { accessToken } = await this.authService.login(dto);
+		const { accessToken, user } = await this.authService.login(dto);
 
 		this.setCookie(res, accessToken);
 
 		return {
 			success: true,
 			accessToken,
+			user,
 		};
 	}
 

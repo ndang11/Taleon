@@ -1,0 +1,22 @@
+import { 
+  Injectable, 
+  CanActivate, 
+  ExecutionContext, 
+  UnauthorizedException 
+} from '@nestjs/common';
+
+@Injectable()
+export class TenantGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+
+    if (!user || !user.tenantId) {
+      throw new UnauthorizedException('Tenant context missing from user profile');
+    }
+
+    request.tenantId = user.tenantId;
+    
+    return true;
+  }
+}
