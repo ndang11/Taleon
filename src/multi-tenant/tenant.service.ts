@@ -1,6 +1,6 @@
 import { Inject, Injectable, Scope } from "@nestjs/common";
-import  { Request } from "express";
-import  { Model } from "mongoose";
+import type { Request } from "express";
+import type { Model } from "mongoose";
 
 @Injectable({ scope: Scope.REQUEST })
 export class TenantService {

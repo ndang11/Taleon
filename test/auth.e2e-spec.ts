@@ -1,6 +1,6 @@
 import type { INestApplication } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import request from "supertest";
 import { AuthModule } from "../src/auth/auth.module";

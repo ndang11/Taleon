@@ -1,14 +1,22 @@
-import { Body, Controller, Post, Res } from "@nestjs/common";
+import {
+	Body,
+	Controller,
+	Get,
+	Post,
+	Req,
+	Res,
+	UseGuards,
+} from "@nestjs/common";
+import type { Response } from "express";
+import type { LoginDto } from "src/dto/login.dto";
+import type { RegisterDto } from "src/dto/register.dto";
 import { Public } from "../common/decorators/public.decorator";
-import { AuthService } from "./auth.service";
-import { type Response } from "express";
-import { RegisterDto } from "src/dto/register.dto";
-import { LoginDto } from "src/dto/login.dto";
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import type { AuthService } from "./auth.service";
 
 @Controller("auth")
 export class AuthController {
-	constructor(private readonly authService: AuthService
-	) { }
+	constructor(private readonly authService: AuthService) {}
 
 	@Public()
 	@Post("register")

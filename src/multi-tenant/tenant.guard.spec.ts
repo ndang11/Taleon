@@ -1,5 +1,5 @@
-import { ExecutionContext, ForbiddenException } from "@nestjs/common";
-import { Test, TestingModule, } from "@nestjs/testing";
+import { type ExecutionContext, ForbiddenException } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { TenantGuard } from "./tenant.guard";
 
 describe("TenantGuard", () => {

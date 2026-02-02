@@ -1,10 +1,13 @@
-
-import ImageKit from "@imagekit/nodejs";
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import type ImageKit from "@imagekit/nodejs";
+import {
+	Inject,
+	Injectable,
+	InternalServerErrorException,
+} from "@nestjs/common";
 
 @Injectable()
 export class ImageKitService {
-	constructor(private readonly imagekit: ImageKit) {}
+	constructor(@Inject("IMAGEKIT") private readonly imagekit: ImageKit) {}
 
 	/**
 	 * Upload an image to ImageKit
@@ -17,11 +20,10 @@ export class ImageKitService {
 		if (!file) throw new InternalServerErrorException("No file provided");
 
 		try {
-			// biome-ignore lint/suspicious/noExplicitAny: ImageKit types are incomplete
 			const result = await (this.imagekit as any).upload({
 				file: file.buffer,
 				fileName: file.originalname,
-				folder: "/posts",
+				folder: "/profile-images",
 			});
 
 			if (!result.url || !result.fileId) {
@@ -38,7 +40,6 @@ export class ImageKitService {
 		if (!fileId) throw new InternalServerErrorException("Invalid fileId");
 
 		try {
-			// biome-ignore lint/suspicious/noExplicitAny: ImageKit types are incomplete
 			await (this.imagekit as any).deleteFile(fileId);
 		} catch (_error) {
 			throw new InternalServerErrorException("Failed to delete image");

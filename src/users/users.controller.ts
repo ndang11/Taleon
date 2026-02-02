@@ -6,16 +6,28 @@ import {
 	Param,
 	Post,
 	Put,
+	UseGuards,
 } from "@nestjs/common";
-import { UsersService } from "./users.service";
+import type { UserDocument } from "src/schemas/users.schema";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { Public } from "../common/decorators/public.decorator";
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import type { UsersService } from "./users.service";
 
 @Controller("users")
+@UseGuards(JwtAuthGuard)
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
 	@Get()
+	@Public()
 	findAll() {
 		return this.usersService.findAll();
+	}
+
+	@Get("me")
+	getMe(@CurrentUser() user: UserDocument) {
+		return user;
 	}
 
 	@Get(":id")
@@ -31,7 +43,15 @@ export class UsersController {
 	@Put(":id")
 	update(
 		@Param("id") id: string,
-		@Body() body: Partial<{ name: string; email: string }>,
+		@Body() body: Partial<{
+			name: string;
+			email: string;
+			bio?: string;
+			avatar?: string;
+			location?: string;
+			website?: string;
+			phone?: string;
+		}>,
 	) {
 		return this.usersService.update(id, body);
 	}

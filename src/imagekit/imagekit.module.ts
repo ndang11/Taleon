@@ -1,17 +1,14 @@
 import ImageKit from "@imagekit/nodejs";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ImageKitController } from "./imagekit.controller";
 import { ImageKitService } from "./imagekit.service";
 
 @Module({
 	imports: [ConfigModule],
+	controllers: [ImageKitController],
 	providers: [
-		{
-			provide: ImageKitService,
-			useFactory: (imagekitInstance: ImageKit) =>
-				new ImageKitService(imagekitInstance),
-			inject: ["IMAGEKIT"],
-		},
+		ImageKitService,
 		{
 			provide: "IMAGEKIT",
 			useFactory: (configService: ConfigService) => {
