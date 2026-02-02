@@ -11,7 +11,7 @@ import {
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
 import { CommentsService } from "./comments.service";
-import type { CreateCommentDto } from "./dto/create-comment.dto";
+import { CreateCommentDto } from "./dto/create-comment.dto";
 
 interface CustomRequest extends Request {
 	user: { userId: string; tenantId: string };

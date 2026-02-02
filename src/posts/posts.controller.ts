@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { Public } from "src/common/decorators/public.decorator";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
-import type { PostContent } from "src/interfaces/post.type";
+import { PostContent } from "src/interfaces/post.type";
 import { TenantGuard } from "../common/guards/tenant.guard";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import { PostsService } from "./posts.service";
