@@ -14,7 +14,7 @@ import { Public } from "src/common/decorators/public.decorator";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { PostContent } from "src/interfaces/post.type";
 import { TenantGuard } from "../common/guards/tenant.guard";
-import type { CreatePostDto } from "./dto/create-post.dto";
+import { CreatePostDto } from "./dto/create-post.dto";
 import { PostsService } from "./posts.service";
 
 @Controller("posts")
@@ -27,7 +27,7 @@ export class PostsController {
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
-		return this.postsService.getPublishedPosts(parseInt(page), parseInt(limit));
+		return this.postsService.getPublishedPosts(parseInt(page, 10), parseInt(limit, 10));
 	}
 
 	@Get("tenant-published")
@@ -39,8 +39,8 @@ export class PostsController {
 	) {
 		return this.postsService.getTenantPublishedPosts(
 			req.user.tenantId,
-			parseInt(page),
-			parseInt(limit),
+			parseInt(page, 10),
+			parseInt(limit, 10),
 		);
 	}
 
@@ -54,8 +54,8 @@ export class PostsController {
 		return this.postsService.getUserPosts(
 			req.user.tenantId,
 			req.user.userId,
-			parseInt(page),
-			parseInt(limit),
+			parseInt(page, 10),
+			parseInt(limit, 10),
 		);
 	}
 

@@ -1,11 +1,10 @@
 import {
 	BadRequestException,
 	Injectable,
-	InternalServerErrorException,
 	NotFoundException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 import { type Model, Types } from "mongoose";
 import slugify from "slugify";
 import { PostContent } from "src/interfaces/post.type";
@@ -14,7 +13,7 @@ import { Post, type PostDocument } from "src/schemas/post.schema";
 import { CommentsService } from "../comments/comments.service";
 import { TenantBaseService } from "../common/services/tenant-base.service";
 import { LikesService } from "../likes/likes.service";
-import type { CreatePostDto } from "./dto/create-post.dto";
+import { CreatePostDto } from "./dto/create-post.dto";
 
 @Injectable()
 export class PostsService extends TenantBaseService<PostDocument> {
@@ -97,7 +96,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		dto: CreatePostDto,
 	): Promise<PostDocument> {
 		const shortId = crypto.randomBytes(6).toString("hex");
-		const baseSlug = slugify(dto.title, { lower: true, strict: true });
+		const baseSlug = slugify(dto.title || 'untitled', { lower: true, strict: true });
 		const fullSlug = `${baseSlug}-${shortId}`;
 
 		const newPost = new this.postModel({
