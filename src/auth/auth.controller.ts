@@ -24,13 +24,14 @@ export class AuthController {
 		@Body() dto: RegisterDto,
 		@Res({ passthrough: true }) res: Response,
 	) {
-		const { accessToken } = await this.authService.register(dto);
+		const { accessToken, user } = await this.authService.register(dto);
 
 		this.setCookie(res, accessToken);
 
 		return {
 			success: true,
 			accessToken,
+			user,
 		};
 	}
 
