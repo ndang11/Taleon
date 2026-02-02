@@ -20,7 +20,7 @@ async function bootstrap() {
 	);
 
 	app.enableCors({
-		origin: ["http://localhost:3000", "http://localhost:3001"],
+		origin: ["https://frontend-taleon.onrender.com/","http://localhost:3000", "http://localhost:3001"],
 		credentials: true,
 		allowedHeaders: ["Content-Type", "Authorization"],
 	});
