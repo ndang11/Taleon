@@ -9,7 +9,7 @@ async function bootstrap() {
 
 	app.use(cookieParser());
 
-	app.setGlobalPrefix("api");
+	app.setGlobalPrefix("api", { exclude: [""] });
 
 	app.useGlobalPipes(
 		new ValidationPipe({
