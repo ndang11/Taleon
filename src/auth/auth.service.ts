@@ -4,7 +4,7 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException,
 } from "@nestjs/common";
-import type { JwtService } from "@nestjs/jwt";
+import { JwtService } from "@nestjs/jwt";
 import { InjectConnection, InjectModel } from "@nestjs/mongoose";
 import * as bcrypt from "bcrypt";
 import type { Connection, Model } from "mongoose";

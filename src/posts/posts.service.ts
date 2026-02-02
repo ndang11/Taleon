@@ -11,9 +11,9 @@ import slugify from "slugify";
 import { PostContent } from "src/interfaces/post.type";
 import { calculateReadingTime } from "src/lib/post-helper";
 import { Post, type PostDocument } from "src/schemas/post.schema";
-import type { CommentsService } from "../comments/comments.service";
+import { CommentsService } from "../comments/comments.service";
 import { TenantBaseService } from "../common/services/tenant-base.service";
-import type { LikesService } from "../likes/likes.service";
+import { LikesService } from "../likes/likes.service";
 import type { CreatePostDto } from "./dto/create-post.dto";
 
 @Injectable()

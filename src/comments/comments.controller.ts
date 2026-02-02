@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
-import type { CommentsService } from "./comments.service";
+import { CommentsService } from "./comments.service";
 import type { CreateCommentDto } from "./dto/create-comment.dto";
 
 interface CustomRequest extends Request {

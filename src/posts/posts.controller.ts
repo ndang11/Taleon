@@ -15,7 +15,7 @@ import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import type { PostContent } from "src/interfaces/post.type";
 import { TenantGuard } from "../common/guards/tenant.guard";
 import type { CreatePostDto } from "./dto/create-post.dto";
-import type { PostsService } from "./posts.service";
+import { PostsService } from "./posts.service";
 
 @Controller("posts")
 export class PostsController {

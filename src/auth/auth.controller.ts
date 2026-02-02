@@ -12,7 +12,7 @@ import type { LoginDto } from "src/dto/login.dto";
 import type { RegisterDto } from "src/dto/register.dto";
 import { Public } from "../common/decorators/public.decorator";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
-import type { AuthService } from "./auth.service";
+import { AuthService } from "./auth.service";
 
 @Controller("auth")
 export class AuthController {
