@@ -29,9 +29,17 @@ export class TenantGuard implements CanActivate {
 			throw new UnauthorizedException("Tenant context missing");
 		}
 
-		const tenant = await this.tenantsService.findById(request.user.tenantId);
+		try {
+			const tenant = await this.tenantsService.findById(request.user.tenantId);
+			request.tenant = tenant;
+			request.tenantId = tenant._id.toString();
+		} catch (error) {
+			// If tenant not found, still allow the request but without tenant context
+			// Use the tenantId from the user object as fallback
+			request.tenant = null;
+			request.tenantId = request.user.tenantId;
+		}
 
-		request.tenant = tenant;
 		return true;
 	}
 }

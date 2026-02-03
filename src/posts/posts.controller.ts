@@ -44,6 +44,20 @@ export class PostsController {
 		);
 	}
 
+	@Get("tenant-all")
+	@UseGuards(JwtAuthGuard, TenantGuard)
+	async getAllTenantPosts(
+		@Req() req: any,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "50",
+	) {
+		return this.postsService.getAllTenantPosts(
+			req.user.tenantId,
+			parseInt(page, 10),
+			parseInt(limit, 10),
+		);
+	}
+
 	@Get("user")
 	@UseGuards(JwtAuthGuard, TenantGuard)
 	async getUserPosts(
@@ -64,6 +78,13 @@ export class PostsController {
 	async getPost(@Param("id") id: string) {
 		const post = await this.postsService.getPostById(id);
 		return { post };
+	}
+
+	@Post(":id/view")
+	@Public()
+	async incrementView(@Param("id") id: string) {
+		const post = await this.postsService.incrementView(id);
+		return { viewCount: post.viewCount };
 	}
 
 	@Get("slug/:slug")

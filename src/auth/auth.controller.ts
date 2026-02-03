@@ -35,6 +35,7 @@ export class AuthController {
 		};
 	}
 
+	@Public()
 	@Post("login")
 	async login(
 		@Body() dto: LoginDto,
@@ -58,11 +59,13 @@ export class AuthController {
 	}
 
 	private setCookie(res: Response, token: string) {
+		const isProduction = process.env.NODE_ENV === "production";
 		res.cookie("access_token", token, {
 			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
+			secure: isProduction,
+			sameSite: isProduction ? "none" : "lax",
 			maxAge: 7 * 24 * 60 * 60 * 1000,
+			partitioned: isProduction,
 		});
 	}
 }

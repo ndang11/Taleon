@@ -7,6 +7,7 @@ import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
 import { CommentsModule } from "./comments/comments.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
+import { FollowsModule } from "./follows/follows.module";
 import { HealthController } from "./health/health.controller";
 import { ImageKitModule } from "./imagekit/imagekit.module";
 import { LikesModule } from "./likes/likes.module";
@@ -31,6 +32,7 @@ import { UsersModule } from "./users/users.module";
 		PostsModule,
 		CommentsModule,
 		LikesModule,
+		FollowsModule,
 		ImageKitModule,
 	],
 	controllers: [AppController, HealthController],

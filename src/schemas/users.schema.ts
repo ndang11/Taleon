@@ -22,6 +22,31 @@ export class User {
 
 	@Prop({ type: Types.ObjectId, ref: "Tenant", required: true })
 	tenantId!: Types.ObjectId;
+
+	// Profile fields
+	@Prop({ default: "" })
+	bio!: string;
+
+	@Prop({ default: "" })
+	avatar!: string;
+
+	@Prop({ default: "" })
+	coverImage!: string;
+
+	@Prop({ default: "" })
+	location!: string;
+
+	@Prop({ default: "" })
+	website!: string;
+
+	@Prop({ default: "" })
+	phone!: string;
+
+	@Prop({ default: 0 })
+	followersCount!: number;
+
+	@Prop({ default: 0 })
+	followingCount!: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -25,8 +25,11 @@ export class AuthService {
 
 	async register(dto: RegisterDto) {
 		const { email, password, name, blogName } = dto;
+		const normalizedEmail = email.toLowerCase().trim();
 
-		const existingUser = await this.userModel.findOne({ email });
+		console.log("[Auth] Register attempt for email:", normalizedEmail);
+
+		const existingUser = await this.userModel.findOne({ email: normalizedEmail });
 		if (existingUser) throw new ConflictException("Email already registered");
 
 		const slug = slugify(blogName, { lower: true, strict: true });
@@ -61,6 +64,8 @@ export class AuthService {
 			const newUser = createdUsers[0];
 			if (!newUser)
 				throw new InternalServerErrorException("Failed to create user");
+
+			console.log("[Auth] User created successfully:", newUser.email, "- ID:", newUser._id);
 
 			newTenant.ownerId = newUser._id;
 			await newTenant.save({ session });
@@ -97,19 +102,48 @@ export class AuthService {
 	async login(credentials: LoginDto) {
 		const { email, password } = credentials;
 
+		// Normalize email to lowercase to match the schema's lowercase option
+		const normalizedEmail = email.toLowerCase().trim();
+
+		console.log("[Auth] Login attempt for email:", normalizedEmail);
+
 		const user = await this.userModel
-			.findOne({ email })
+			.findOne({ email: normalizedEmail })
 			.select("+password")
 			.exec();
 
 		if (!user) {
+			console.warn("[Auth] User not found for email:", email);
 			throw new UnauthorizedException("Invalid email or password");
 		}
 
-		const isPasswordValid = await bcrypt.compare(password, user.password);
-		if (!isPasswordValid) {
+		console.log("[Auth] User found:", user.email, "- Password field type:", typeof user.password);
+		console.log("[Auth] User password length:", user.password?.length);
+
+		if (!user.password) {
+			console.warn("[Auth] User has no password field set:", email);
 			throw new UnauthorizedException("Invalid email or password");
 		}
+
+		console.log("[Auth] User found:", user.email, "- Verifying password...");
+
+		let isPasswordValid = false;
+		try {
+			isPasswordValid = await bcrypt.compare(password, user.password);
+			console.log("[Auth] Password comparison result:", isPasswordValid);
+			console.log("[Auth] Input password length:", password.length);
+			console.log("[Auth] Stored hash length:", user.password.length);
+		} catch (error) {
+			console.error("[Auth] Password comparison error:", error);
+			throw new UnauthorizedException("Invalid email or password");
+		}
+
+		if (!isPasswordValid) {
+			console.warn("[Auth] Invalid password for user:", email);
+			throw new UnauthorizedException("Invalid email or password");
+		}
+
+		console.log("[Auth] Login successful for user:", email);
 
 		return this.generateToken(user);
 	}

@@ -1,11 +1,12 @@
 import ImageKit from "@imagekit/nodejs";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { MultiTenantModule } from "../multi-tenant/multi-tenant.module";
 import { ImageKitController } from "./imagekit.controller";
 import { ImageKitService } from "./imagekit.service";
 
 @Module({
-	imports: [ConfigModule],
+	imports: [ConfigModule, MultiTenantModule],
 	controllers: [ImageKitController],
 	providers: [
 		ImageKitService,

@@ -163,6 +163,35 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		};
 	}
 
+	async getAllTenantPosts(
+		tenantId: string,
+		page: number = 1,
+		limit: number = 50,
+	) {
+		const skip = (page - 1) * limit;
+		const tenantObjectId = new Types.ObjectId(tenantId);
+
+		const posts = await this.postModel
+			.find({ tenantId: tenantObjectId })
+			.populate("authorId", "name email avatar")
+			.sort({ updatedAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.exec();
+
+		const total = await this.postModel
+			.countDocuments({ tenantId: tenantObjectId })
+			.exec();
+
+		return {
+			posts,
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
+		};
+	}
+
 	async getUserPostBySlug(tenantId: string, userId: string, slug: string) {
 		return this.postModel.findOne({ tenantId, authorId: userId, slug });
 	}
@@ -250,6 +279,20 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		if (!post) {
 			throw new Error("Post not found");
+		}
+
+		return post;
+	}
+
+	async incrementView(postId: string): Promise<PostDocument> {
+		const post = await this.postModel.findByIdAndUpdate(
+			postId,
+			{ $inc: { viewCount: 1 } },
+			{ new: true },
+		);
+
+		if (!post) {
+			throw new NotFoundException("Post not found");
 		}
 
 		return post;

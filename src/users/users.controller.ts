@@ -48,6 +48,7 @@ export class UsersController {
 			email: string;
 			bio?: string;
 			avatar?: string;
+			coverImage?: string;
 			location?: string;
 			website?: string;
 			phone?: string;

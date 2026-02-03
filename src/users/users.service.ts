@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import type { Model } from "mongoose";
-import { User, type UserDocument } from "src/schemas/users.schema";
+import { type Model, Types } from "mongoose";
+import { User, type UserDocument } from "../schemas/users.schema";
 
 /**
  * Service for managing user operations.
@@ -23,7 +23,18 @@ export class UsersService {
 		password: string;
 		tenantId?: string;
 	}): Promise<UserDocument> {
-		const user = new this.userModel(data);
+		const user = new this.userModel({
+			...data,
+			tenantId: data.tenantId ? new Types.ObjectId(data.tenantId) : undefined,
+			bio: "",
+			avatar: "",
+			coverImage: "",
+			location: "",
+			website: "",
+			phone: "",
+			followersCount: 0,
+			followingCount: 0,
+		});
 		return user.save();
 	}
 

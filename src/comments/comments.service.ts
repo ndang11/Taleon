@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { type Model, Types } from "mongoose";
-import { Comment, type IComment } from "src/models/comment.model";
+import { Comment, type IComment } from "../models/comment.model";
 import type { CreateCommentDto } from "./dto/create-comment.dto";
 
 @Injectable()
@@ -15,6 +15,13 @@ export class CommentsService {
 		userId: string,
 		tenantId: string,
 	): Promise<IComment> {
+		console.log("Creating comment with:", {
+			content: createCommentDto.content,
+			postId: createCommentDto.postId,
+			userId,
+			tenantId,
+		});
+
 		const comment = new this.commentModel({
 			...createCommentDto,
 			postId: new Types.ObjectId(createCommentDto.postId),
