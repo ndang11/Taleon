@@ -11,7 +11,9 @@ async function bootstrap() {
 
 	app.enableCors({
 		origin: [
-			"https://frontend-taleon.onrender.com"
+			"https://frontend-taleon.onrender.com",
+			"http://localhost:3000",
+			"http://localhost:3001",
 		],
 		methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 		credentials: true,
