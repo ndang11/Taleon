@@ -15,10 +15,12 @@ async function bootstrap() {
 			"http://localhost:3000",
 			"http://localhost:3001",
 		],
-		methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+		methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
 		credentials: true,
-		allowedHeaders: "Content-Type, Accept, Authorization",
-		exposedHeaders: "Authorization",
+		allowedHeaders:
+			"Content-Type, Accept, Authorization, X-Requested-With, Access-Control-Allow-Origin",
+		exposedHeaders: "Authorization, Set-Cookie",
+		maxAge: 86400,
 	});
 
 	app.use(cookieParser());
