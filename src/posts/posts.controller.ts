@@ -10,12 +10,13 @@ import {
 	Req,
 	UseGuards,
 } from "@nestjs/common";
+import type { Request } from "express";
 import { Public } from "src/common/decorators/public.decorator";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
-import { PostContent } from "src/interfaces/post.type";
+import type { PostContent } from "src/interfaces/post.type";
 import { TenantGuard } from "../common/guards/tenant.guard";
-import { CreatePostDto } from "./dto/create-post.dto";
-import { PostsService } from "./posts.service";
+import type { CreatePostDto } from "./dto/create-post.dto";
+import type { PostsService } from "./posts.service";
 
 @Controller("posts")
 export class PostsController {
@@ -27,17 +28,21 @@ export class PostsController {
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
-		return this.postsService.getPublishedPosts(parseInt(page, 10), parseInt(limit, 10));
+		return this.postsService.getPublishedPosts(
+			parseInt(page, 10),
+			parseInt(limit, 10),
+		);
 	}
 
 	@Get("tenant-published")
 	@UseGuards(JwtAuthGuard, TenantGuard)
 	async getTenantPublishedPosts(
-		@Req() req: any,
+		@Req() req: Request,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
 		return this.postsService.getTenantPublishedPosts(
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.tenantId,
 			parseInt(page, 10),
 			parseInt(limit, 10),
@@ -47,11 +52,12 @@ export class PostsController {
 	@Get("tenant-all")
 	@UseGuards(JwtAuthGuard, TenantGuard)
 	async getAllTenantPosts(
-		@Req() req: any,
+		@Req() req: Request,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "50",
 	) {
 		return this.postsService.getAllTenantPosts(
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.tenantId,
 			parseInt(page, 10),
 			parseInt(limit, 10),
@@ -61,16 +67,24 @@ export class PostsController {
 	@Get("user")
 	@UseGuards(JwtAuthGuard, TenantGuard)
 	async getUserPosts(
-		@Req() req: any,
+		@Req() req: Request,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
 		return this.postsService.getUserPosts(
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.userId,
 			parseInt(page, 10),
 			parseInt(limit, 10),
 		);
+	}
+
+	@Get("user/:userId/published")
+	@UseGuards(JwtAuthGuard, TenantGuard)
+	async getPublishedPostsByAuthor(@Param("userId") userId: string) {
+		return this.postsService.getPublishedPostsByAuthor(userId);
 	}
 
 	@Get(":id")
@@ -89,9 +103,11 @@ export class PostsController {
 
 	@Get("slug/:slug")
 	@UseGuards(JwtAuthGuard, TenantGuard)
-	async getUserPostBySlug(@Param("slug") slug: string, @Req() req: any) {
+	async getUserPostBySlug(@Param("slug") slug: string, @Req() req: Request) {
 		const post = await this.postsService.getUserPostBySlug(
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.userId,
 			slug,
 		);
@@ -107,9 +123,11 @@ export class PostsController {
 
 	@Post()
 	@UseGuards(JwtAuthGuard, TenantGuard)
-	async create(@Req() req: any, @Body() dto: CreatePostDto) {
+	async create(@Req() req: Request, @Body() dto: CreatePostDto) {
 		return this.postsService.initializeDraft(
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.userId,
 			dto,
 		);
@@ -119,11 +137,13 @@ export class PostsController {
 	@UseGuards(JwtAuthGuard, TenantGuard)
 	async autoSave(
 		@Param("id") id: string,
-		@Req() req: any,
+		@Req() req: Request,
 		@Body() body: { content: PostContent; title?: string },
 	) {
 		return this.postsService.updateDraft(
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
 			req.user.userId,
 			id,
 			body,
@@ -132,13 +152,25 @@ export class PostsController {
 
 	@Patch(":id/publish")
 	@UseGuards(JwtAuthGuard, TenantGuard)
-	async publish(@Param("id") id: string, @Req() req: any) {
-		return this.postsService.publish(req.user.tenantId, req.user.userId, id);
+	async publish(@Param("id") id: string, @Req() req: Request) {
+		return this.postsService.publish(
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.userId,
+			id,
+		);
 	}
 
 	@Delete(":id")
 	@UseGuards(JwtAuthGuard, TenantGuard)
-	async delete(@Param("id") id: string, @Req() req: any) {
-		return this.postsService.delete(req.user.tenantId, req.user.userId, id);
+	async delete(@Param("id") id: string, @Req() req: Request) {
+		return this.postsService.delete(
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.userId,
+			id,
+		);
 	}
 }

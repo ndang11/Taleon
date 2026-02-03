@@ -10,15 +10,15 @@ import { PostsController } from "./posts.controller";
 import { PostsService } from "./posts.service";
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
-        AuthModule,
-        TenantsModule,
-        CommentsModule,
-        forwardRef(() => LikesModule), 
-    ],
-    controllers: [PostsController],
-    providers: [PostsService],
-    exports: [PostsService],
+	imports: [
+		MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
+		AuthModule,
+		TenantsModule,
+		CommentsModule,
+		forwardRef(() => LikesModule),
+	],
+	controllers: [PostsController],
+	providers: [PostsService],
+	exports: [PostsService],
 })
 export class PostsModule {}
