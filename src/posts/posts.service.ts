@@ -1,19 +1,26 @@
+import * as crypto from "node:crypto";
 import {
 	BadRequestException,
 	Injectable,
 	NotFoundException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import * as crypto from "node:crypto";
-import { type Model, Types } from "mongoose";
+import type { Model } from "mongoose";
+import { Types } from "mongoose";
 import slugify from "slugify";
-import { PostContent } from "src/interfaces/post.type";
 import { calculateReadingTime } from "src/lib/post-helper";
 import { Post, type PostDocument } from "src/schemas/post.schema";
-import { CommentsService } from "../comments/comments.service";
+import type { CommentsService } from "../comments/comments.service";
 import { TenantBaseService } from "../common/services/tenant-base.service";
-import { LikesService } from "../likes/likes.service";
-import { CreatePostDto } from "./dto/create-post.dto";
+import type { LikesService } from "../likes/likes.service";
+import type { CreatePostDto } from "./dto/create-post.dto";
+
+interface UpdateDraftData {
+	content?: unknown;
+	title?: string;
+	wordCount?: number;
+	readingTime?: number;
+}
 
 @Injectable()
 export class PostsService extends TenantBaseService<PostDocument> {
@@ -60,9 +67,9 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		tenantId: string,
 		userId: string,
 		postId: string,
-		data: any,
+		data: UpdateDraftData,
 	) {
-		const updatePayload: any = { ...data };
+		const updatePayload: UpdateDraftData = { ...data };
 
 		if (data.content) {
 			const { words, minutes } = calculateReadingTime(data.content);
@@ -79,7 +86,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			.findOneAndUpdate(
 				{ _id: postObjectId, tenantId: tenantObjectId, authorId: userObjectId },
 				{ $set: updatePayload },
-				{ new: true }, // THIS 'new: true' is vital to return the document!
+				{ new: true },
 			)
 			.exec();
 
@@ -96,7 +103,10 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		dto: CreatePostDto,
 	): Promise<PostDocument> {
 		const shortId = crypto.randomBytes(6).toString("hex");
-		const baseSlug = slugify(dto.title || 'untitled', { lower: true, strict: true });
+		const baseSlug = slugify(dto.title || "untitled", {
+			lower: true,
+			strict: true,
+		});
 		const fullSlug = `${baseSlug}-${shortId}`;
 
 		const newPost = new this.postModel({
@@ -132,6 +142,16 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			limit,
 			totalPages: Math.ceil(total / limit),
 		};
+	}
+
+	async getPublishedPostsByAuthor(authorId: string) {
+		const posts = await this.postModel
+			.find({ authorId: new Types.ObjectId(authorId), status: "published" })
+			.populate("authorId", "name email avatar")
+			.sort({ publishedAt: -1 })
+			.exec();
+
+		return posts;
 	}
 
 	async getTenantPublishedPosts(
@@ -267,7 +287,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 	async getPost(id: string) {
 		return this.postModel
 			.findById(id)
-			.populate("authorId", "name email avatar") // This turns the ID into the AuthorInfo object
+			.populate("authorId", "name email avatar")
 			.exec();
 	}
 

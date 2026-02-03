@@ -4,7 +4,7 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import type { JwtService } from "@nestjs/jwt";
 import { InjectConnection, InjectModel } from "@nestjs/mongoose";
 import * as bcrypt from "bcrypt";
 import type { Connection, Model } from "mongoose";
@@ -29,7 +29,9 @@ export class AuthService {
 
 		console.log("[Auth] Register attempt for email:", normalizedEmail);
 
-		const existingUser = await this.userModel.findOne({ email: normalizedEmail });
+		const existingUser = await this.userModel.findOne({
+			email: normalizedEmail,
+		});
 		if (existingUser) throw new ConflictException("Email already registered");
 
 		const slug = slugify(blogName, { lower: true, strict: true });
@@ -65,7 +67,12 @@ export class AuthService {
 			if (!newUser)
 				throw new InternalServerErrorException("Failed to create user");
 
-			console.log("[Auth] User created successfully:", newUser.email, "- ID:", newUser._id);
+			console.log(
+				"[Auth] User created successfully:",
+				newUser.email,
+				"- ID:",
+				newUser._id,
+			);
 
 			newTenant.ownerId = newUser._id;
 			await newTenant.save({ session });
@@ -95,6 +102,8 @@ export class AuthService {
 				name: user.name,
 				email: user.email,
 				tenantId: user.tenantId,
+				avatar: user.avatar || "",
+				coverImage: user.coverImage || "",
 			},
 		};
 	}
@@ -117,7 +126,12 @@ export class AuthService {
 			throw new UnauthorizedException("Invalid email or password");
 		}
 
-		console.log("[Auth] User found:", user.email, "- Password field type:", typeof user.password);
+		console.log(
+			"[Auth] User found:",
+			user.email,
+			"- Password field type:",
+			typeof user.password,
+		);
 		console.log("[Auth] User password length:", user.password?.length);
 
 		if (!user.password) {

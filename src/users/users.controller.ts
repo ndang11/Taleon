@@ -12,7 +12,7 @@ import type { UserDocument } from "src/schemas/users.schema";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
-import { UsersService } from "./users.service";
+import type { UsersService } from "./users.service";
 
 @Controller("users")
 @UseGuards(JwtAuthGuard)
@@ -43,22 +43,13 @@ export class UsersController {
 	@Put(":id")
 	update(
 		@Param("id") id: string,
-		@Body() body: Partial<{
-			name: string;
-			email: string;
-			bio?: string;
-			avatar?: string;
-			coverImage?: string;
-			location?: string;
-			website?: string;
-			phone?: string;
-		}>,
+		@Body() body: { name?: string; bio?: string; avatar?: string },
 	) {
 		return this.usersService.update(id, body);
 	}
 
 	@Delete(":id")
-	remove(@Param("id") id: string) {
+	delete(@Param("id") id: string) {
 		return this.usersService.remove(id);
 	}
 }

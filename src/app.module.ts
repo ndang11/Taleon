@@ -9,12 +9,12 @@ import { CommentsModule } from "./comments/comments.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { FollowsModule } from "./follows/follows.module";
 import { HealthController } from "./health/health.controller";
-import { ImageKitModule } from "./imagekit/imagekit.module";
 import { LikesModule } from "./likes/likes.module";
 import { MultiTenantModule } from "./multi-tenant/multi-tenant.module";
 import { TenantGuard } from "./multi-tenant/tenant.guard";
 import { PostsModule } from "./posts/posts.module";
 import { TenantsModule } from "./tenants/tenants.module";
+import { UploadModule } from "./upload/upload.module";
 import { UsersModule } from "./users/users.module";
 
 @Module({
@@ -33,7 +33,7 @@ import { UsersModule } from "./users/users.module";
 		CommentsModule,
 		LikesModule,
 		FollowsModule,
-		ImageKitModule,
+		UploadModule,
 	],
 	controllers: [AppController, HealthController],
 	providers: [
