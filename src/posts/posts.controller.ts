@@ -173,4 +173,67 @@ export class PostsController {
 			id,
 		);
 	}
+
+	/**
+	 * Archive a post
+	 * PATCH /posts/:id/archive
+	 */
+	@Patch(":id/archive")
+	@UseGuards(JwtAuthGuard, TenantGuard)
+	async archive(
+		@Param("id") id: string,
+		@Req() req: Request,
+		@Body() body: { content?: unknown; title?: string; image?: string },
+	) {
+		return this.postsService.archivePost(
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.userId,
+			id,
+			body,
+		);
+	}
+
+	/**
+	 * Get user's draft posts
+	 * GET /posts/user/drafts
+	 */
+	@Get("user/drafts")
+	@UseGuards(JwtAuthGuard, TenantGuard)
+	async getUserDrafts(
+		@Req() req: Request,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "20",
+	) {
+		return this.postsService.getUserDrafts(
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.userId,
+			parseInt(page, 10),
+			parseInt(limit, 10),
+		);
+	}
+
+	/**
+	 * Get user's archived posts
+	 * GET /posts/user/archived
+	 */
+	@Get("user/archived")
+	@UseGuards(JwtAuthGuard, TenantGuard)
+	async getUserArchived(
+		@Req() req: Request,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "20",
+	) {
+		return this.postsService.getUserArchived(
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.tenantId,
+			// @ts-expect-error - user is added by JWT strategy
+			req.user.userId,
+			parseInt(page, 10),
+			parseInt(limit, 10),
+		);
+	}
 }

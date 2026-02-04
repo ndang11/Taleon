@@ -8,11 +8,11 @@ import {
 	Post,
 	UseGuards,
 } from "@nestjs/common";
-import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
-import { TenantContextService } from "src/multi-tenant/tenant-context.service";
-import { LikesService } from "./likes.service";
-import { PostsService } from "../posts/posts.service";
+import type { TenantContextService } from "src/multi-tenant/tenant-context.service";
 import { Public } from "../common/decorators/public.decorator";
+import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
+import { PostsService } from "../posts/posts.service";
+import type { LikesService } from "./likes.service";
 
 @Controller("likes")
 export class LikesController {

@@ -94,4 +94,18 @@ export class UsersService {
 		if (!user) throw new NotFoundException("User not found");
 		return user;
 	}
+
+	/**
+	 * Updates a user's avatar URL.
+	 * @param id The user ID.
+	 * @param avatarUrl The new avatar URL.
+	 * @returns The updated user document.
+	 */
+	async updateAvatar(id: string, avatarUrl: string): Promise<UserDocument> {
+		const user = await this.userModel
+			.findByIdAndUpdate(id, { avatar: avatarUrl }, { new: true })
+			.exec();
+		if (!user) throw new NotFoundException("User not found");
+		return user;
+	}
 }

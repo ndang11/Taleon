@@ -5,14 +5,14 @@ export type FollowDocument = HydratedDocument<Follow>;
 
 @Schema({ timestamps: true })
 export class Follow {
-  @Prop({ type: Types.ObjectId, ref: "User", required: true })
-  followerId!: Types.ObjectId;
+	@Prop({ type: Types.ObjectId, ref: "User", required: true })
+	followerId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: "User", required: true })
-  followingId!: Types.ObjectId;
+	@Prop({ type: Types.ObjectId, ref: "User", required: true })
+	followingId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: "Tenant", required: true })
-  tenantId!: Types.ObjectId;
+	@Prop({ type: Types.ObjectId, ref: "Tenant", required: true })
+	tenantId!: Types.ObjectId;
 }
 
 export const FollowSchema = SchemaFactory.createForClass(Follow);

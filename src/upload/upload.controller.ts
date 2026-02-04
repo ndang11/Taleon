@@ -10,6 +10,7 @@ import {
 	UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { UploadService } from "./upload.service";
 
@@ -27,6 +28,7 @@ export class UploadController {
 	@Post("post-image")
 	@UseInterceptors(
 		FileInterceptor("file", {
+			storage: memoryStorage(),
 			limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 			fileFilter: (_req, file, callback) => {
 				if (!file.mimetype.match(/^image\/(jpg|jpeg|png|gif|webp)$/)) {
@@ -70,6 +72,7 @@ export class UploadController {
 	@Post("cover-image")
 	@UseInterceptors(
 		FileInterceptor("file", {
+			storage: memoryStorage(),
 			limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 			fileFilter: (_req, file, callback) => {
 				if (!file.mimetype.match(/^image\/(jpg|jpeg|png|gif|webp)$/)) {
@@ -113,6 +116,7 @@ export class UploadController {
 	@Post("profile-image")
 	@UseInterceptors(
 		FileInterceptor("file", {
+			storage: memoryStorage(),
 			limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 			fileFilter: (_req, file, callback) => {
 				if (!file.mimetype.match(/^image\/(jpg|jpeg|png|gif|webp)$/)) {

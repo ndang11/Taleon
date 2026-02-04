@@ -1,6 +1,7 @@
 import * as crypto from "node:crypto";
 import {
 	BadRequestException,
+	Inject,
 	Injectable,
 	NotFoundException,
 } from "@nestjs/common";
@@ -14,6 +15,7 @@ import type { CommentsService } from "../comments/comments.service";
 import { TenantBaseService } from "../common/services/tenant-base.service";
 import type { LikesService } from "../likes/likes.service";
 import type { CreatePostDto } from "./dto/create-post.dto";
+import { COMMENTS_SERVICE, LIKES_SERVICE } from "./posts.constants";
 
 interface UpdateDraftData {
 	content?: unknown;
@@ -26,8 +28,8 @@ interface UpdateDraftData {
 export class PostsService extends TenantBaseService<PostDocument> {
 	constructor(
 		@InjectModel(Post.name) private postModel: Model<PostDocument>,
-		private commentsService: CommentsService,
-		private likesService: LikesService,
+		@Inject(COMMENTS_SERVICE) private commentsService: CommentsService,
+		@Inject(LIKES_SERVICE) private likesService: LikesService,
 	) {
 		super(postModel);
 	}
@@ -72,7 +74,14 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		const updatePayload: UpdateDraftData = { ...data };
 
 		if (data.content) {
-			const { words, minutes } = calculateReadingTime(data.content);
+			// Handle content: convert object to JSON string if needed
+			const contentString =
+				typeof data.content === "string"
+					? data.content
+					: JSON.stringify(data.content);
+			updatePayload.content = contentString;
+
+			const { words, minutes } = calculateReadingTime(contentString);
 			updatePayload.wordCount = words;
 			updatePayload.readingTime = minutes;
 		}
@@ -109,13 +118,23 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		});
 		const fullSlug = `${baseSlug}-${shortId}`;
 
+		// Handle content: convert object to JSON string if needed
+		const contentString =
+			typeof dto.content === "string"
+				? dto.content
+				: typeof dto.content === "object" && dto.content !== null
+					? JSON.stringify(dto.content)
+					: JSON.stringify(dto.contentObject || { blocks: [] });
+
 		const newPost = new this.postModel({
-			...dto,
+			title: dto.title || "Untitled Story",
+			content: contentString,
 			slug: fullSlug,
-			content: { blocks: [] },
 			authorId: new Types.ObjectId(userId),
 			tenantId: new Types.ObjectId(tenantId),
 			status: "draft",
+			category: dto.category,
+			image: dto.image,
 		});
 
 		return newPost.save();
@@ -339,5 +358,116 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		await this.postModel.deleteOne({ _id: postObjectId });
 		return { message: "Post deleted successfully" };
+	}
+
+	async archivePost(
+		tenantId: string,
+		userId: string,
+		postId: string,
+		data: { content?: unknown; title?: string; image?: string },
+	): Promise<PostDocument> {
+		const postObjectId = new Types.ObjectId(postId);
+		const tenantObjectId = new Types.ObjectId(tenantId);
+		const userObjectId = new Types.ObjectId(userId);
+
+		const updatePayload: Record<string, unknown> = { status: "archived" };
+
+		if (data.content) {
+			const contentString =
+				typeof data.content === "string"
+					? data.content
+					: JSON.stringify(data.content);
+			updatePayload.content = contentString;
+
+			const { words, minutes } = calculateReadingTime(contentString);
+			updatePayload.wordCount = words;
+			updatePayload.readingTime = minutes;
+		}
+
+		if (data.title) {
+			updatePayload.title = data.title;
+		}
+
+		if (data.image) {
+			updatePayload.image = data.image;
+		}
+
+		const archivedPost = await this.postModel
+			.findOneAndUpdate(
+				{ _id: postObjectId, tenantId: tenantObjectId, authorId: userObjectId },
+				{ $set: updatePayload },
+				{ new: true },
+			)
+			.exec();
+
+		if (!archivedPost) {
+			throw new NotFoundException("Post not found or unauthorized");
+		}
+
+		return archivedPost;
+	}
+
+	async getUserDrafts(
+		tenantId: string,
+		userId: string,
+		page: number = 1,
+		limit: number = 20,
+	) {
+		const skip = (page - 1) * limit;
+		const tenantObjectId = new Types.ObjectId(tenantId);
+		const userObjectId = new Types.ObjectId(userId);
+
+		const posts = await this.postModel
+			.find({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "draft",
+			})
+			.sort({ updatedAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.exec();
+
+		const total = await this.postModel
+			.countDocuments({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "draft",
+			})
+			.exec();
+
+		return { posts, total, page, limit };
+	}
+
+	async getUserArchived(
+		tenantId: string,
+		userId: string,
+		page: number = 1,
+		limit: number = 20,
+	) {
+		const skip = (page - 1) * limit;
+		const tenantObjectId = new Types.ObjectId(tenantId);
+		const userObjectId = new Types.ObjectId(userId);
+
+		const posts = await this.postModel
+			.find({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "archived",
+			})
+			.sort({ updatedAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.exec();
+
+		const total = await this.postModel
+			.countDocuments({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "archived",
+			})
+			.exec();
+
+		return { posts, total, page, limit };
 	}
 }
