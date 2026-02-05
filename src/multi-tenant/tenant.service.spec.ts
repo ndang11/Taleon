@@ -1,3 +1,4 @@
+import type { Request } from "express";
 import type { Model } from "mongoose";
 import { TenantService } from "./tenant.service";
 
@@ -16,7 +17,7 @@ describe("TenantService", () => {
 
 		service = new TenantService({
 			tenantId: "tenant1",
-		} as unknown as Request & { tenantId?: string } & Record<string, unknown>);
+		} as unknown as Request & { tenantId?: string });
 	});
 
 	it("should be defined", () => {
@@ -66,7 +67,7 @@ describe("TenantService", () => {
 	it("should create document with tenantId injected", async () => {
 		const created = { title: "Test", tenantId: "tenant1" };
 
-		const mockConstructor = jest.fn<() => unknown>().mockImplementation(() => ({
+		const mockConstructor = jest.fn().mockImplementation(() => ({
 			save: jest.fn().mockResolvedValue(created),
 		}));
 
@@ -112,10 +113,7 @@ describe("TenantService", () => {
 
 	it("should throw if tenantId is missing", async () => {
 		const serviceWithoutTenant = new TenantService(
-			{} as unknown as Request & { tenantId?: string } & Record<
-					string,
-					unknown
-				>,
+			{} as unknown as Request & { tenantId?: string },
 		);
 
 		await expect(

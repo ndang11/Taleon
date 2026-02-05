@@ -1,9 +1,17 @@
+import { Type } from "class-transformer";
 import {
 	IsBoolean,
 	IsEnum,
 	IsOptional,
 	IsString,
+	ValidateNested,
 } from "class-validator";
+
+export class PostContent {
+	blocks?: any[];
+	time?: number;
+	version?: string;
+}
 
 export class CreatePostDto {
 	@IsOptional()
@@ -15,8 +23,13 @@ export class CreatePostDto {
 	content?: string;
 
 	@IsOptional()
-	@IsEnum(["draft", "published", "unpublished"])
-	status?: "draft" | "published" | "unpublished";
+	@ValidateNested()
+	@Type(() => PostContent)
+	contentObject?: PostContent;
+
+	@IsOptional()
+	@IsEnum(["draft", "published", "unpublished", "archived"])
+	status?: "draft" | "published" | "unpublished" | "archived";
 
 	@IsOptional()
 	@IsString()

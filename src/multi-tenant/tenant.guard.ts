@@ -4,9 +4,9 @@ import {
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
+import type { Reflector } from "@nestjs/core";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
-import { TenantsService } from "../tenants/tenants.service";
+import type { TenantsService } from "../tenants/tenants.service";
 
 @Injectable()
 export class TenantGuard implements CanActivate {
@@ -33,7 +33,7 @@ export class TenantGuard implements CanActivate {
 			const tenant = await this.tenantsService.findById(request.user.tenantId);
 			request.tenant = tenant;
 			request.tenantId = tenant._id.toString();
-		} catch (error) {
+		} catch (_error) {
 			// If tenant not found, still allow the request but without tenant context
 			// Use the tenantId from the user object as fallback
 			request.tenant = null;

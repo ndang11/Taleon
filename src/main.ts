@@ -1,10 +1,11 @@
 import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common/pipes/validation.pipe";
-import { NestFactory } from "@nestjs/core";
+import { NestFactory, Reflector } from "@nestjs/core";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -36,6 +37,11 @@ async function bootstrap() {
 	);
 
 	app.useGlobalFilters(new HttpExceptionFilter());
+
+	// Use global guard with proper reflector injection
+	const reflector = app.get(Reflector);
+	const jwtAuthGuard = new JwtAuthGuard(reflector);
+	app.useGlobalGuards(jwtAuthGuard);
 
 	app.enableShutdownHooks();
 

@@ -31,3 +31,4 @@ const likeSchema = new Schema<ILike>(
 likeSchema.index({ postId: 1, userId: 1 }, { unique: true });
 
 export const Like = model<ILike>("Like", likeSchema);
+export const LikeSchema = likeSchema;

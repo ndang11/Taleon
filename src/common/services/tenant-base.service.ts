@@ -1,5 +1,7 @@
+import { Injectable } from "@nestjs/common";
 import { type Document, type Model, Types } from "mongoose";
 
+@Injectable()
 export abstract class TenantBaseService<T extends Document> {
 	constructor(protected readonly model: Model<T>) {}
 
@@ -17,7 +19,12 @@ export abstract class TenantBaseService<T extends Document> {
 	}
 
 	async findOne(tenantId: string | Types.ObjectId, id: string) {
-		return this.model.findOne({ _id: id, tenantId } as any).exec();
+		const tenantObjectId =
+			typeof tenantId === "string" ? new Types.ObjectId(tenantId) : tenantId;
+		const idObjectId = new Types.ObjectId(id);
+		return this.model
+			.findOne({ _id: idObjectId, tenantId: tenantObjectId })
+			.exec();
 	}
 
 	async create(tenantId: string | Types.ObjectId, dto: Partial<T>) {
@@ -31,7 +38,7 @@ export abstract class TenantBaseService<T extends Document> {
 
 		return this.model
 			.findOneAndUpdate(
-				{ _id: idObjectId, tenantId: tenantObjectId } as any,
+				{ _id: idObjectId, tenantId: tenantObjectId },
 				{ $set: dto },
 				{ new: true },
 			)

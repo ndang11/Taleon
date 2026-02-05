@@ -13,15 +13,22 @@ export class UploadService {
 	constructor() {
 		// Configure Cloudinary with your credentials
 		// Get these from: https://cloudinary.com/console
-		// cloud_name: 'dauivea1l' (from your Cloudinary dashboard)
-		// api_key: '419861726753472' (from your Cloudinary dashboard)
-		// api_secret: 'AMc8IWuGXW5KSoSxT-TBIESDryk' (from your Cloudinary dashboard - View API Keys)
-		cloudinary.config({
-			cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-			api_key: process.env.CLOUDINARY_API_KEY,
-			api_secret: process.env.CLOUDINARY_API_SECRET,
-		});
-		this.logger.log("Cloudinary configured successfully");
+		const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+		const apiKey = process.env.CLOUDINARY_API_KEY;
+		const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+		if (!cloudName || !apiKey || !apiSecret) {
+			this.logger.error(
+				"Cloudinary credentials are missing! Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.",
+			);
+		} else {
+			cloudinary.config({
+				cloud_name: cloudName,
+				api_key: apiKey,
+				api_secret: apiSecret,
+			});
+			this.logger.log("Cloudinary configured successfully");
+		}
 	}
 
 	/**

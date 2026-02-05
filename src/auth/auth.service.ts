@@ -1,5 +1,6 @@
 import {
 	ConflictException,
+	Inject,
 	Injectable,
 	InternalServerErrorException,
 	UnauthorizedException,
@@ -13,6 +14,7 @@ import type { LoginDto } from "src/dto/login.dto";
 import type { RegisterDto } from "../dto/register.dto";
 import { Tenant, type TenantDocument } from "../schemas/tenants.schema";
 import { User, type UserDocument } from "../schemas/users.schema";
+import { JWT_SERVICE } from "./constants";
 
 @Injectable()
 export class AuthService {
@@ -20,7 +22,7 @@ export class AuthService {
 		@InjectModel(User.name) private userModel: Model<UserDocument>,
 		@InjectModel(Tenant.name) private tenantModel: Model<TenantDocument>,
 		@InjectConnection() private readonly connection: Connection,
-		private jwtService: JwtService,
+		@Inject(JWT_SERVICE) private jwtService: JwtService,
 	) {}
 
 	async register(dto: RegisterDto) {
