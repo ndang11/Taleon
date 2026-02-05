@@ -7,7 +7,6 @@ import {
 	Request,
 	UseGuards,
 } from "@nestjs/common";
-import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
 import type { FollowsService } from "./follows.service";
 
@@ -17,9 +16,9 @@ interface CustomRequest extends Request {
 }
 
 @Controller("follows")
-@UseGuards(JwtAuthGuard, TenantGuard)
+@UseGuards(TenantGuard)
 export class FollowsController {
-	constructor(private readonly followsService: FollowsService) {}
+	constructor(private followsService: FollowsService) {}
 
 	@Post(":userId")
 	async follow(@Param("userId") userId: string, @Request() req: CustomRequest) {
@@ -34,32 +33,21 @@ export class FollowsController {
 		return this.followsService.unfollow(req.user.userId, userId);
 	}
 
-	@Get(":userId/status")
-	async isFollowing(
-		@Param("userId") userId: string,
-		@Request() req: CustomRequest,
-	) {
-		const isFollowing = await this.followsService.isFollowing(
-			req.user.userId,
-			userId,
-		);
-		return { isFollowing };
-	}
-
-	@Get(":userId/followers")
+	@Get("followers/:userId")
 	async getFollowers(@Param("userId") userId: string) {
 		return this.followsService.getFollowers(userId);
 	}
 
-	@Get(":userId/following")
+	@Get("following/:userId")
 	async getFollowing(@Param("userId") userId: string) {
 		return this.followsService.getFollowing(userId);
 	}
 
-	@Get(":userId/counts")
-	async getCounts(@Param("userId") userId: string) {
-		const followersCount = await this.followsService.getFollowersCount(userId);
-		const followingCount = await this.followsService.getFollowingCount(userId);
-		return { followersCount, followingCount };
+	@Get("check/:userId")
+	async isFollowing(
+		@Param("userId") userId: string,
+		@Request() req: CustomRequest,
+	) {
+		return this.followsService.isFollowing(req.user.userId, userId);
 	}
 }

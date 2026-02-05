@@ -6,10 +6,7 @@ import {
 	Param,
 	Post,
 	Request,
-	UseGuards,
 } from "@nestjs/common";
-import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
-import { TenantGuard } from "../multi-tenant/tenant.guard";
 import type { CommentsService } from "./comments.service";
 import type { CreateCommentDto } from "./dto/create-comment.dto";
 
@@ -19,9 +16,8 @@ interface CustomRequest extends Request {
 }
 
 @Controller("comments")
-@UseGuards(JwtAuthGuard, TenantGuard)
 export class CommentsController {
-	constructor(private readonly commentsService: CommentsService) {}
+	constructor(private commentsService: CommentsService) {}
 
 	@Post()
 	create(

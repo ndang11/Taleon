@@ -6,16 +6,13 @@ import {
 	Param,
 	Post,
 	UploadedFile,
-	UseGuards,
 	UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
-import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { UploadService } from "./upload.service";
 
 @Controller("upload")
-@UseGuards(JwtAuthGuard)
 export class UploadController {
 	private readonly logger = new Logger(UploadController.name);
 
