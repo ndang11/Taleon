@@ -12,7 +12,8 @@ import type { UserDocument } from "src/schemas/users.schema";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
-import type { UsersService } from "./users.service";
+// biome-ignore lint/style/useImportType: NestJS uses this for dependency injection.
+import { UsersService } from "./users.service";
 
 @Controller("users")
 @UseGuards(JwtAuthGuard)
@@ -36,6 +37,7 @@ export class UsersController {
 	}
 
 	@Post()
+	@Public()
 	create(@Body() body: { name: string; email: string; password: string }) {
 		return this.usersService.create(body);
 	}

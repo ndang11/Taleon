@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
-import type { PostsService } from "./posts.service";
+import { PostsService } from "./posts.service";
 
 // Type alias for the authenticated user
 interface AuthenticatedUser {

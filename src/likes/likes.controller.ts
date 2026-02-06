@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import type { Request } from "express";
 import { PostsService } from "../posts/posts.service";
-import type { LikesService } from "./likes.service";
+import { LikesService } from "./likes.service";
 
 @Controller("likes")
 export class LikesController {

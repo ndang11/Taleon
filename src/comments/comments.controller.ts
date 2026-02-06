@@ -7,8 +7,8 @@ import {
 	Post,
 	Request,
 } from "@nestjs/common";
-import type { CommentsService } from "./comments.service";
-import type { CreateCommentDto } from "./dto/create-comment.dto";
+import { CommentsService } from "./comments.service";
+import { CreateCommentDto } from "./dto/create-comment.dto";
 
 interface CustomRequest extends Request {
 	user: { userId: string; tenantId: string };

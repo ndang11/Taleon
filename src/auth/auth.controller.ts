@@ -3,7 +3,8 @@ import type { Response } from "express";
 import type { LoginDto } from "src/dto/login.dto";
 import type { RegisterDto } from "src/dto/register.dto";
 import { Public } from "../common/decorators/public.decorator";
-import type { AuthService } from "./auth.service";
+// biome-ignore lint/style/useImportType: NestJS uses this for dependency injection.
+import { AuthService } from "./auth.service";
 
 @Controller("auth")
 export class AuthController {
