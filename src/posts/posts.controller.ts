@@ -7,14 +7,16 @@ import {
 	Patch,
 	Post,
 	Query,
+	Req,
 	UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { UpdateDraftDto } from "./dto/update-post.dto";
-import { CreatePostDto } from "./dto/create-post.dto";
+import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
-import { PostsService } from "./posts.service";
+import type { CreatePostDto } from "./dto/create-post.dto";
+import type { UpdateDraftDto } from "./dto/update-post.dto";
+import type { PostsService } from "./posts.service";
 
 // Type alias for the authenticated user
 interface AuthenticatedUser {
@@ -36,6 +38,21 @@ export class PostsController {
 		return this.postsService.initializeDraft(
 			user.tenantId,
 			user.userId,
+			dto,
+		);
+	}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Patch(":id/autosave")
+	autoSave(
+		@CurrentUser() user: AuthenticatedUser,
+		@Param("id") id: string,
+		@Body() dto: UpdateDraftDto,
+	) {
+		return this.postsService.updateDraft(
+			user.tenantId,
+			user.userId,
+			id,
 			dto,
 		);
 	}
@@ -80,10 +97,17 @@ export class PostsController {
 	@UseGuards(AuthGuard("jwt"))
 	@Get("user")
 	async getUserPosts(
-		@CurrentUser() user: AuthenticatedUser,
+		@Req() req: Request,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
+		// Access user from request object (populated by JwtAuthGuard)
+		const user = req.user as { userId: string; tenantId: string; email: string };
+		
+		if (!user || !user.userId || !user.tenantId) {
+			throw new Error("User not authenticated properly");
+		}
+		
 		return this.postsService.getUserPosts(
 			user.tenantId,
 			user.userId,
@@ -95,12 +119,60 @@ export class PostsController {
 	@UseGuards(AuthGuard("jwt"))
 	@Get("tenant-published")
 	async getTenantPublishedPosts(
+		@Req() req: Request,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "10",
+	) {
+		// Access user from request object (populated by JwtAuthGuard)
+		const user = req.user as { userId: string; tenantId: string; email: string };
+		
+		if (!user || !user.tenantId) {
+			throw new Error("User not authenticated properly");
+		}
+		
+		return this.postsService.getTenantPublishedPosts(
+			user.tenantId,
+			Number(page),
+			Number(limit),
+		);
+	}
+
+	@Public()
+	@Get(":id")
+	async getPostById(@Param("id") id: string) {
+		return this.postsService.getPostById(id);
+	}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Patch(":id/publish")
+	async publishPost(
+		@CurrentUser() user: AuthenticatedUser,
+		@Param("id") id: string,
+		@Body() dto: UpdateDraftDto,
+	) {
+		return this.postsService.publish(user.tenantId, user.userId, id, dto);
+	}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Patch(":id/archive")
+	async archivePost(
+		@CurrentUser() user: AuthenticatedUser,
+		@Param("id") id: string,
+		@Body() dto: UpdateDraftDto,
+	) {
+		return this.postsService.archivePost(user.tenantId, user.userId, id, dto);
+	}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Get("user/archived")
+	async getUserArchivedPosts(
 		@CurrentUser() user: AuthenticatedUser,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
-		return this.postsService.getTenantPublishedPosts(
+		return this.postsService.getUserArchived(
 			user.tenantId,
+			user.userId,
 			Number(page),
 			Number(limit),
 		);

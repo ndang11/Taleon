@@ -18,10 +18,11 @@ import type { CreatePostDto } from "./dto/create-post.dto";
 import { COMMENTS_SERVICE, LIKES_SERVICE } from "./posts.constants";
 
 interface UpdateDraftData {
-	content?: unknown;
+	content?: string | Record<string, unknown>;
 	title?: string;
 	wordCount?: number;
 	readingTime?: number;
+	status?: "draft" | "published" | "unpublished" | "archived";
 }
 
 @Injectable()
@@ -38,6 +39,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		tenantId: string,
 		userId: string,
 		postId: string,
+		data?: { title?: string; content?: string | Record<string, unknown> },
 	): Promise<PostDocument> {
 		const postObjectId = new Types.ObjectId(postId);
 		const tenantObjectId = new Types.ObjectId(tenantId);
@@ -53,7 +55,37 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new NotFoundException("Post not found or unauthorized");
 		}
 
-		if (!post.title || post.wordCount === 0) {
+		// Use provided data or fall back to existing post data
+		const finalTitle = data?.title || post.title;
+		const finalContent = data?.content || post.content;
+
+		console.log("[DEBUG publish] finalTitle:", finalTitle);
+		console.log("[DEBUG publish] finalContent type:", typeof finalContent);
+
+		// Calculate word count for string content
+		let wordCount = post.wordCount || 0;
+		if (typeof finalContent === "string" && finalContent.trim()) {
+			// Strip HTML tags and calculate word count
+			const textOnly = finalContent.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+			wordCount = textOnly ? textOnly.split(/\s+/).filter((w) => w.length > 0).length : 0;
+		}
+
+		// Update post with new data if provided
+		if (data?.title) {
+			post.title = data.title;
+		}
+		if (data?.content) {
+			const contentString =
+				typeof data.content === "string"
+					? data.content
+					: JSON.stringify(data.content);
+			post.content = contentString;
+			post.wordCount = wordCount;
+		}
+
+		console.log("[DEBUG publish] wordCount:", wordCount);
+
+		if (!finalTitle || wordCount === 0) {
 			throw new BadRequestException(
 				"Cannot publish an empty post without a title or content",
 			);
@@ -73,6 +105,8 @@ export class PostsService extends TenantBaseService<PostDocument> {
 	) {
 		const updatePayload: UpdateDraftData = { ...data };
 
+		console.log("[DEBUG updateDraft] received data:", JSON.stringify(data).substring(0, 200));
+
 		if (data.content) {
 			// Handle content: convert object to JSON string if needed
 			const contentString =
@@ -84,6 +118,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			const { words, minutes } = calculateReadingTime(contentString);
 			updatePayload.wordCount = words;
 			updatePayload.readingTime = minutes;
+			console.log("[DEBUG updateDraft] calculated wordCount:", words, "minutes:", minutes);
 		}
 
 		// Convert string IDs to ObjectId for proper querying
@@ -102,6 +137,8 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		if (!updatedPost) {
 			throw new NotFoundException("Post not found or unauthorized");
 		}
+
+		console.log("[DEBUG updateDraft] saved post.wordCount:", updatedPost.wordCount);
 
 		return updatedPost;
 	}
@@ -242,8 +279,11 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		limit: number = 10,
 	) {
 		const skip = (page - 1) * limit;
+		const tenantObjectId = new Types.ObjectId(tenantId);
+		const userObjectId = new Types.ObjectId(userId);
+
 		const posts = await this.postModel
-			.find({ tenantId, authorId: userId })
+			.find({ tenantId: tenantObjectId, authorId: userObjectId })
 			.sort({ updatedAt: -1 })
 			.skip(skip)
 			.limit(limit)
@@ -262,14 +302,18 @@ export class PostsService extends TenantBaseService<PostDocument> {
 						tenantId,
 					);
 					return {
-						...post.toObject(),
+						...(post.toObject() as any),
+						image: post.coverImage, // Alias for frontend compatibility
+						viewCount: post.viewCount || 0,
 						likeCount,
 						commentCount,
 					};
 				} catch (error) {
 					console.error(`Error getting counts for post ${post._id}:`, error);
 					return {
-						...post.toObject(),
+						...(post.toObject() as any),
+						image: post.coverImage,
+						viewCount: post.viewCount || 0,
 						likeCount: 0,
 						commentCount: 0,
 					};
@@ -278,7 +322,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		);
 
 		const total = await this.postModel
-			.countDocuments({ tenantId, authorId: userId })
+			.countDocuments({ tenantId: tenantObjectId, authorId: userObjectId })
 			.exec();
 
 		return {

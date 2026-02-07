@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { type HydratedDocument, Types } from "mongoose";
-import type { PostContent } from "src/interfaces/post.type";
 
 export type PostDocument = HydratedDocument<Post>;
 
@@ -12,8 +11,8 @@ export class Post {
 	@Prop({ trim: true })
 	subtitle?: string;
 
-	@Prop({ type: Object, required: true })
-	content!: PostContent;
+	@Prop({ type: String, required: true })
+	content!: string;
 
 	@Prop({ unique: true, index: true })
 	slug!: string;
