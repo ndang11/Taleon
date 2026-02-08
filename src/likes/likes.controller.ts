@@ -1,57 +1,77 @@
 import {
+	Body,
 	Controller,
-	forwardRef,
 	Get,
-	Inject,
-	NotFoundException,
 	Param,
 	Post,
 	Req,
+	UseGuards,
 } from "@nestjs/common";
-import type { Request } from "express";
-import { PostsService } from "../posts/posts.service";
+import { AuthGuard } from "@nestjs/passport";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { Public } from "../common/decorators/public.decorator";
+import { ToggleLikeDto } from "./dto/toggle-like.dto";
 import { LikesService } from "./likes.service";
+
+// Type alias for the authenticated user
+interface AuthenticatedUser {
+	userId: string;
+	email: string;
+	tenantId: string;
+}
 
 @Controller("likes")
 export class LikesController {
-	constructor(
-		private likesService: LikesService,
-		@Inject(forwardRef(() => PostsService))
-		private postsService: PostsService,
-	) {}
+	constructor(private readonly likesService: LikesService) {}
 
+	@UseGuards(AuthGuard("jwt"))
 	@Post("post/:postId/toggle")
 	async toggleLike(
+		@CurrentUser() user: AuthenticatedUser,
 		@Param("postId") postId: string,
-		@Req() req: Request & {
-			user: { tenantId: string; userId: string; sub: string };
-		},
 	) {
-		const userId = req.user.userId;
-		const tenantId = req.user.tenantId;
-
-		const post = await this.postsService.getPostById(postId);
-		if (!post) {
-			throw new NotFoundException("Post not found");
-		}
-
-		return await this.likesService.toggleLike(postId, userId, tenantId);
+		return this.likesService.toggleLike(
+			postId,
+			user.userId,
+			user.tenantId,
+		);
 	}
 
-	@Get("post/:postId/status")
-	async hasUserLiked(
-		@Param("postId") postId: string,
-		@Req() req: Request & {
-			user: { tenantId: string; userId: string; sub: string };
-		},
-	) {
-		const userId = req.user.userId;
-		const tenantId = req.user.tenantId;
-		return this.likesService.hasUserLiked(postId, userId, tenantId);
-	}
-
+	@Public()
 	@Get("post/:postId/count")
-	async getLikeCount(@Param("postId") postId: string) {
-		return this.likesService.getLikeCount(postId);
+	async getLikeCount(
+		@Param("postId") postId: string,
+		@Req() req: any,
+	) {
+		const tenantId = req.query.tenantId as string | undefined;
+		const count = await this.likesService.getLikeCount(postId, tenantId);
+		return { likeCount: count };
+	}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Get("post/:postId/status")
+	async getLikeStatus(
+		@CurrentUser() user: AuthenticatedUser,
+		@Param("postId") postId: string,
+	) {
+		const [liked, likeCount] = await Promise.all([
+			this.likesService.hasUserLiked(postId, user.userId, user.tenantId),
+			this.likesService.getLikeCount(postId, user.tenantId),
+		]);
+		return { liked, likeCount };
+	}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Get("post/:postId/check")
+	async hasUserLiked(
+		@CurrentUser() user: AuthenticatedUser,
+		@Param("postId") postId: string,
+	) {
+		const liked = await this.likesService.hasUserLiked(
+			postId,
+			user.userId,
+			user.tenantId,
+		);
+		return { liked };
 	}
 }

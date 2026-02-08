@@ -11,12 +11,11 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
-import type { CreatePostDto } from "./dto/create-post.dto";
-import type { UpdateDraftDto } from "./dto/update-post.dto";
-import type { PostsService } from "./posts.service";
+import { CreatePostDto } from "./dto/create-post.dto";
+import { UpdateDraftDto } from "./dto/update-post.dto";
+import { PostsService } from "./posts.service";
 
 // Type alias for the authenticated user
 interface AuthenticatedUser {
@@ -95,9 +94,34 @@ export class PostsController {
 	}
 
 	@UseGuards(AuthGuard("jwt"))
+	@Get("slug/:slug")
+	async getUserPostBySlug(
+		@Req() req: any,
+		@Param("slug") slug: string,
+	) {
+		const user = req.user as { userId: string; tenantId: string; email: string };
+		
+		if (!user || !user.userId || !user.tenantId) {
+			throw new Error("User not authenticated properly");
+		}
+		
+		const post = await this.postsService.getUserPostBySlug(
+			user.tenantId,
+			user.userId,
+			slug,
+		);
+		
+		if (!post) {
+			throw new Error("Post not found");
+		}
+		
+		return { post };
+	}
+
+	@UseGuards(AuthGuard("jwt"))
 	@Get("user")
 	async getUserPosts(
-		@Req() req: Request,
+		@Req() req: any,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
@@ -119,7 +143,7 @@ export class PostsController {
 	@UseGuards(AuthGuard("jwt"))
 	@Get("tenant-published")
 	async getTenantPublishedPosts(
-		@Req() req: Request,
+		@Req() req: any,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
@@ -135,6 +159,12 @@ export class PostsController {
 			Number(page),
 			Number(limit),
 		);
+	}
+
+	@Public()
+	@Get("slug/public/:slug")
+	async getPublishedPostBySlug(@Param("slug") slug: string) {
+		return this.postsService.getPublishedPostBySlug(slug);
 	}
 
 	@Public()

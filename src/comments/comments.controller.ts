@@ -6,7 +6,9 @@ import {
 	Param,
 	Post,
 	Request,
+	UseGuards,
 } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { CommentsService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 
@@ -19,6 +21,7 @@ interface CustomRequest extends Request {
 export class CommentsController {
 	constructor(private commentsService: CommentsService) {}
 
+	@UseGuards(AuthGuard("jwt"))
 	@Post()
 	create(
 		@Body() createCommentDto: CreateCommentDto,
@@ -27,17 +30,19 @@ export class CommentsController {
 		return this.commentsService.create(
 			createCommentDto,
 			req.user.userId,
-			req.tenantId,
+			req.user.tenantId,
 		);
 	}
 
+	@UseGuards(AuthGuard("jwt"))
 	@Get("post/:postId")
 	findByPost(@Param("postId") postId: string, @Request() req: CustomRequest) {
-		return this.commentsService.findByPost(postId, req.tenantId);
+		return this.commentsService.findByPost(postId, req.user.tenantId);
 	}
 
+	@UseGuards(AuthGuard("jwt"))
 	@Delete(":id")
 	remove(@Param("id") id: string, @Request() req: CustomRequest) {
-		return this.commentsService.remove(id, req.user.userId, req.tenantId);
+		return this.commentsService.remove(id, req.user.userId, req.user.tenantId);
 	}
 }
