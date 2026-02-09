@@ -23,6 +23,8 @@ interface UpdateDraftData {
 	wordCount?: number;
 	readingTime?: number;
 	status?: "draft" | "published" | "unpublished" | "archived";
+	image?: string;
+	coverImage?: string;
 }
 
 @Injectable()
@@ -121,6 +123,12 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			console.log("[DEBUG updateDraft] calculated wordCount:", words, "minutes:", minutes);
 		}
 
+		// Rename image to coverImage for schema compatibility
+		if (data.image) {
+			updatePayload.coverImage = data.image;
+			delete updatePayload.image;
+		}
+
 		// Convert string IDs to ObjectId for proper querying
 		const postObjectId = new Types.ObjectId(postId);
 		const tenantObjectId = new Types.ObjectId(tenantId);
@@ -171,7 +179,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			tenantId: new Types.ObjectId(tenantId),
 			status: "draft",
 			category: dto.category,
-			image: dto.image,
+			coverImage: dto.image,
 		});
 
 		return newPost.save();
@@ -187,12 +195,18 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			.limit(limit)
 			.exec();
 
+		// Add image alias for frontend compatibility
+		const postsWithImage = posts.map((post) => ({
+			...(post.toObject() as any),
+			image: post.coverImage,
+		}));
+
 		const total = await this.postModel
 			.countDocuments({ status: "published" })
 			.exec();
 
 		return {
-			posts,
+			posts: postsWithImage,
 			total,
 			page,
 			limit,
@@ -226,12 +240,18 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			.limit(limit)
 			.exec();
 
+		// Add image alias for frontend compatibility
+		const postsWithImage = posts.map((post) => ({
+			...(post.toObject() as any),
+			image: post.coverImage,
+		}));
+
 		const total = await this.postModel
 			.countDocuments({ tenantId: tenantObjectId, status: "published" })
 			.exec();
 
 		return {
-			posts,
+			posts: postsWithImage,
 			total,
 			page,
 			limit,
@@ -344,7 +364,10 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new Error("Post not found");
 		}
 
-		return post;
+		return {
+			...(post.toObject() as any),
+			image: post.coverImage,
+		};
 	}
 
 	async getPost(id: string) {
@@ -364,7 +387,10 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new Error("Post not found");
 		}
 
-		return post;
+		return {
+			...(post.toObject() as any),
+			image: post.coverImage,
+		};
 	}
 
 	async incrementView(postId: string): Promise<PostDocument> {
