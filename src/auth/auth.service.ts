@@ -106,6 +106,10 @@ export class AuthService {
 				tenantId: user.tenantId,
 				avatar: user.avatar || "",
 				coverImage: user.coverImage || "",
+				bio: user.bio || "",
+				location: user.location || "",
+				website: user.website || "",
+				phone: user.phone || "",
 			},
 		};
 	}
