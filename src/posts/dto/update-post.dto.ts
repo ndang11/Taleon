@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsDefined, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class UpdateDraftDto {
 	@IsOptional()
@@ -6,6 +6,7 @@ export class UpdateDraftDto {
 	title?: string;
 
 	@IsOptional()
+	@IsDefined()
 	content?: string | Record<string, unknown>;
 
 	@IsOptional()

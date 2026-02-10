@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
 import {
 	IsBoolean,
+	IsDefined,
 	IsEnum,
 	IsOptional,
 	IsString,
@@ -24,6 +25,7 @@ export class CreatePostDto {
 	title?: string;
 
 	@IsOptional()
+	@IsDefined()
 	content?: string | Record<string, unknown>;
 
 	@IsOptional()
