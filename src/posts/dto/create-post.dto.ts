@@ -1,7 +1,6 @@
 import { Type } from "class-transformer";
 import {
 	IsBoolean,
-	IsDefined,
 	IsEnum,
 	IsOptional,
 	IsString,
@@ -9,8 +8,13 @@ import {
 } from "class-validator";
 
 export class PostContent {
+	@IsOptional()
 	blocks?: any[];
+
+	@IsOptional()
 	time?: number;
+
+	@IsOptional()
 	version?: string;
 }
 
@@ -20,7 +24,6 @@ export class CreatePostDto {
 	title?: string;
 
 	@IsOptional()
-	@IsDefined()
 	content?: string | Record<string, unknown>;
 
 	@IsOptional()
@@ -47,4 +50,8 @@ export class CreatePostDto {
 	@IsOptional()
 	@IsBoolean()
 	isPublic?: boolean;
+
+	@IsOptional()
+	@IsString()
+	subtitle?: string;
 }
