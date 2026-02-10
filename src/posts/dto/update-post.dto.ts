@@ -36,5 +36,10 @@ export class PublishPostDto {
 	title?: string;
 
 	@IsOptional()
+	@IsString()
 	content?: string | Record<string, unknown>;
+
+	@IsOptional()
+	@IsString()
+	category?: string;
 }
