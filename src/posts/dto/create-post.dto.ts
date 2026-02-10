@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
 import {
 	IsBoolean,
+	IsDefined,
 	IsEnum,
 	IsOptional,
 	IsString,
@@ -19,8 +20,8 @@ export class CreatePostDto {
 	title?: string;
 
 	@IsOptional()
-	@IsString()
-	content?: string;
+	@IsDefined()
+	content?: string | Record<string, unknown>;
 
 	@IsOptional()
 	@ValidateNested()
