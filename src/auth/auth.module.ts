@@ -4,7 +4,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { PassportModule } from "@nestjs/passport";
 import { Tenant, TenantSchema } from "src/schemas/tenants.schema";
 import { User, UserSchema } from "src/schemas/users.schema";
-import { TenantsModule } from "../tenants/tenants.module";
+import { MultiTenantModule } from "../multi-tenant/multi-tenant.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { JWT_SERVICE, jwtConstants } from "./constants";
@@ -21,7 +21,7 @@ import { JwtStrategy } from "./jwt.strategy";
 			{ name: User.name, schema: UserSchema },
 			{ name: Tenant.name, schema: TenantSchema },
 		]),
-		TenantsModule,
+		MultiTenantModule,
 	],
 	controllers: [AuthController],
 	providers: [

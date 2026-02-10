@@ -24,6 +24,7 @@
 		"@nestjs/mongoose": "^11.0.4",
 		"@nestjs/passport": "^11.0.5",
 		"@nestjs/platform-express": "^11.1.13",
+		"@tiptap/extension-bubble-menu": "^3.19.0",
 		"bcrypt": "^6.0.0",
 		"class-transformer": "^0.5.1",
 		"class-validator": "^0.14.3",

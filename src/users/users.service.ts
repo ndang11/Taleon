@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
+import * as bcrypt from "bcrypt";
 import { type Model, Types } from "mongoose";
 import { User, type UserDocument } from "../schemas/users.schema";
 
@@ -23,8 +24,12 @@ export class UsersService {
 		password: string;
 		tenantId?: string;
 	}): Promise<UserDocument> {
+		const salt = await bcrypt.genSalt();
+		const hashedPassword = await bcrypt.hash(data.password, salt);
+
 		const user = new this.userModel({
 			...data,
+			password: hashedPassword,
 			tenantId: data.tenantId ? new Types.ObjectId(data.tenantId) : undefined,
 			bio: "",
 			avatar: "",

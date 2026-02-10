@@ -8,7 +8,7 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
-import type { FollowsService } from "./follows.service";
+import { FollowsService } from "./follows.service";
 
 interface CustomRequest extends Request {
 	user: { userId: string; tenantId: string };

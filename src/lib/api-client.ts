@@ -1,10 +1,6 @@
 const API_URL =
 	process.env.NEXT_PUBLIC_API_URL ?? "https://taleon-sijl.onrender.com/api";
 
-/* =====================
-   TYPES
-===================== */
-
 export interface CreatePostRequest {
 	title: string;
 	content: string;
@@ -21,10 +17,6 @@ export interface UpdatePostRequest {
 	image?: File;
 }
 
-/* =====================
-   CREATE POST
-===================== */
-
 export async function createPost(data: CreatePostRequest, token: string) {
 	const formData = new FormData();
 
@@ -40,7 +32,7 @@ export async function createPost(data: CreatePostRequest, token: string) {
 	const res = await fetch(`${API_URL}/posts`, {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${token}`, // 🔥 critical
+			Authorization: `Bearer ${token}`,
 		},
 		body: formData,
 	});
