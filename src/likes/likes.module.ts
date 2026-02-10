@@ -1,7 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import mongoose, { Schema } from "mongoose";
-import { Like, LikeSchema } from "../models/like.model";
+import { Schema } from "mongoose";
 import { MultiTenantModule } from "../multi-tenant/multi-tenant.module";
 import { PostsModule } from "../posts/posts.module";
 import { LikesController } from "./likes.controller";

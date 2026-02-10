@@ -2,29 +2,29 @@ import { IsEnum, IsOptional, IsString } from "class-validator";
 import { NotificationType } from "../notifications.schema";
 
 export class CreateNotificationDto {
-  @IsString()
-  userId!: string;
+	@IsString()
+	userId!: string;
 
-  @IsOptional()
-  @IsString()
-  fromUserId?: string;
+	@IsOptional()
+	@IsString()
+	fromUserId?: string;
 
-  @IsEnum(NotificationType)
-  type!: NotificationType;
+	@IsEnum(NotificationType)
+	type!: NotificationType;
 
-  @IsOptional()
-  @IsString()
-  postId?: string;
+	@IsOptional()
+	@IsString()
+	postId?: string;
 
-  @IsString()
-  message!: string;
+	@IsString()
+	message!: string;
 
-  @IsOptional()
-  @IsString()
-  link?: string;
+	@IsOptional()
+	@IsString()
+	link?: string;
 }
 
 export class MarkNotificationReadDto {
-  @IsString()
-  notificationId!: string;
+	@IsString()
+	notificationId!: string;
 }

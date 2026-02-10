@@ -1,16 +1,7 @@
-import {
-	Body,
-	Controller,
-	Get,
-	Param,
-	Post,
-	Req,
-	UseGuards,
-} from "@nestjs/common";
+import { Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
-import { ToggleLikeDto } from "./dto/toggle-like.dto";
 import { LikesService } from "./likes.service";
 
 // Type alias for the authenticated user
@@ -30,19 +21,12 @@ export class LikesController {
 		@CurrentUser() user: AuthenticatedUser,
 		@Param("postId") postId: string,
 	) {
-		return this.likesService.toggleLike(
-			postId,
-			user.userId,
-			user.tenantId,
-		);
+		return this.likesService.toggleLike(postId, user.userId, user.tenantId);
 	}
 
 	@Public()
 	@Get("post/:postId/count")
-	async getLikeCount(
-		@Param("postId") postId: string,
-		@Req() req: any,
-	) {
+	async getLikeCount(@Param("postId") postId: string, @Req() req: any) {
 		const tenantId = req.query.tenantId as string | undefined;
 		const count = await this.likesService.getLikeCount(postId, tenantId);
 		return { likeCount: count };

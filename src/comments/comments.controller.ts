@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { CommentsService } from "./comments.service";
-import { CreateCommentDto } from "./dto/create-comment.dto";
+import type { CreateCommentDto } from "./dto/create-comment.dto";
 
 interface CustomRequest extends Request {
 	user: { userId: string; tenantId: string };

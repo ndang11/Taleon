@@ -1,12 +1,11 @@
 import {
-	CanActivate,
-	ExecutionContext,
+	type CanActivate,
+	type ExecutionContext,
+	forwardRef,
 	Inject,
 	Injectable,
 	UnauthorizedException,
-	forwardRef,
 } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
 import { IS_PUBLIC_KEY } from "../common/decorators/public.decorator";
 import { TenantsService } from "../tenants/tenants.service";
 
@@ -15,14 +14,14 @@ export class TenantGuard implements CanActivate {
 	constructor(
 		@Inject(forwardRef(() => TenantsService))
 		private readonly tenantsService: TenantsService,
-		private readonly reflector: Reflector,
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		const isPublic = Reflect.getMetadata(
+			IS_PUBLIC_KEY,
 			context.getHandler(),
-			context.getClass(),
-		]);
+		) || Reflect.getMetadata(IS_PUBLIC_KEY, context.getClass());
 
 		if (isPublic) return true;
 

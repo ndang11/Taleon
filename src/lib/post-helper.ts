@@ -5,8 +5,13 @@ export function calculateReadingTime(content: any): {
 	// Handle string content (HTML or plain text)
 	if (typeof content === "string") {
 		// Strip HTML tags for word counting
-		const textOnly = content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-		const words = textOnly ? textOnly.split(/\s+/).filter((w) => w.length > 0).length : 0;
+		const textOnly = content
+			.replace(/<[^>]*>/g, " ")
+			.replace(/\s+/g, " ")
+			.trim();
+		const words = textOnly
+			? textOnly.split(/\s+/).filter((w) => w.length > 0).length
+			: 0;
 		const wordsPerMinute = 225;
 		const minutes = Math.ceil(words / wordsPerMinute) || 1;
 		return { words, minutes };

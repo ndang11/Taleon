@@ -1,4 +1,10 @@
-import { Document, model, Schema, type Types, SchemaDefinitionProperty } from "mongoose";
+import {
+	type Document,
+	model,
+	Schema,
+	type SchemaDefinitionProperty,
+	type Types,
+} from "mongoose";
 
 export interface ILike extends Document {
 	postId: Types.ObjectId;

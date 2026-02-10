@@ -18,14 +18,18 @@ export class UploadService {
 		const apiKey = this.configService.get<string>("CLOUDINARY_API_KEY");
 		const apiSecret = this.configService.get<string>("CLOUDINARY_API_SECRET");
 
-		this.logger.log(`Cloudinary config check - CLOUDINARY_URL: ${cloudinaryUrl ? 'set' : 'not set'}, CLOUDINARY_CLOUD_NAME: ${cloudName ? 'set' : 'not set'}, CLOUDINARY_API_KEY: ${apiKey ? 'set' : 'not set'}`);
+		this.logger.log(
+			`Cloudinary config check - CLOUDINARY_URL: ${cloudinaryUrl ? "set" : "not set"}, CLOUDINARY_CLOUD_NAME: ${cloudName ? "set" : "not set"}, CLOUDINARY_API_KEY: ${apiKey ? "set" : "not set"}`,
+		);
 
 		// Also set process.env for Cloudinary SDK (it may use this internally)
 		if (cloudinaryUrl) {
 			process.env.CLOUDINARY_URL = cloudinaryUrl;
 			// Parse CLOUDINARY_URL to extract individual credentials
 			// Format: cloudinary://api_key:api_secret@cloud_name
-			const urlMatch = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
+			const urlMatch = cloudinaryUrl.match(
+				/cloudinary:\/\/([^:]+):([^@]+)@(.+)/,
+			);
 			if (urlMatch) {
 				const [, parsedApiKey, parsedApiSecret, parsedCloudName] = urlMatch;
 				process.env.CLOUDINARY_CLOUD_NAME = parsedCloudName;
@@ -86,12 +90,16 @@ export class UploadService {
 		const apiKey = this.configService.get<string>("CLOUDINARY_API_KEY");
 		const apiSecret = this.configService.get<string>("CLOUDINARY_API_SECRET");
 
-		this.logger.log(`Cloudinary config check - CLOUDINARY_URL: ${cloudinaryUrl ? 'set' : 'not set'}, CLOUDINARY_CLOUD_NAME: ${cloudName ? 'set' : 'not set'}, CLOUDINARY_API_KEY: ${apiKey ? 'set' : 'not set'}`);
+		this.logger.log(
+			`Cloudinary config check - CLOUDINARY_URL: ${cloudinaryUrl ? "set" : "not set"}, CLOUDINARY_CLOUD_NAME: ${cloudName ? "set" : "not set"}, CLOUDINARY_API_KEY: ${apiKey ? "set" : "not set"}`,
+		);
 
 		// Explicitly configure Cloudinary before upload
 		if (cloudinaryUrl) {
 			// Parse CLOUDINARY_URL to extract individual credentials
-			const urlMatch = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
+			const urlMatch = cloudinaryUrl.match(
+				/cloudinary:\/\/([^:]+):([^@]+)@(.+)/,
+			);
 			if (urlMatch) {
 				const [, parsedApiKey, parsedApiSecret, parsedCloudName] = urlMatch;
 				cloudinary.config({
@@ -109,11 +117,15 @@ export class UploadService {
 				api_secret: apiSecret,
 			});
 		} else {
-			throw new InternalServerErrorException("Cloudinary credentials are missing");
+			throw new InternalServerErrorException(
+				"Cloudinary credentials are missing",
+			);
 		}
 
 		// Debug: Log current Cloudinary config
-		this.logger.log(`Cloudinary config - api_key: ${cloudinary.config().api_key || 'not set'}, cloud_name: ${cloudinary.config().cloud_name || 'not set'}`);
+		this.logger.log(
+			`Cloudinary config - api_key: ${cloudinary.config().api_key || "not set"}, cloud_name: ${cloudinary.config().cloud_name || "not set"}`,
+		);
 
 		this.logger.log(`Uploading image to ${folder}: ${originalName}`);
 
@@ -180,9 +192,15 @@ export class UploadService {
 	} {
 		const timestamp = Math.round(Date.now() / 1000);
 
-		const apiSecret = this.configService.get<string>("CLOUDINARY_API_SECRET") as string;
-		const apiKey = this.configService.get<string>("CLOUDINARY_API_KEY") as string;
-		const cloudName = this.configService.get<string>("CLOUDINARY_CLOUD_NAME") as string;
+		const apiSecret = this.configService.get<string>(
+			"CLOUDINARY_API_SECRET",
+		) as string;
+		const apiKey = this.configService.get<string>(
+			"CLOUDINARY_API_KEY",
+		) as string;
+		const cloudName = this.configService.get<string>(
+			"CLOUDINARY_CLOUD_NAME",
+		) as string;
 
 		const signature = cloudinary.utils.api_sign_request(
 			{

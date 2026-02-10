@@ -1,14 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { type Model, Types } from "mongoose";
-import { type ILike, Like } from "../models/like.model";
+import type { ILike } from "../models/like.model";
 
 @Injectable()
 export class LikesService {
 	constructor(@InjectModel("Like") private likeModel: Model<ILike>) {}
 
 	private isValidObjectId(id: string): boolean {
-		return Types.ObjectId.isValid(id) && new Types.ObjectId(id).toString() === id;
+		return (
+			Types.ObjectId.isValid(id) && new Types.ObjectId(id).toString() === id
+		);
 	}
 
 	async toggleLike(
@@ -35,8 +37,14 @@ export class LikesService {
 		} else {
 			// Like
 			try {
-				console.log("Like schema fields:", Object.keys(this.likeModel.schema.paths));
-				console.log("Content field required:", this.likeModel.schema.path("content")?.isRequired);
+				console.log(
+					"Like schema fields:",
+					Object.keys(this.likeModel.schema.paths),
+				);
+				console.log(
+					"Content field required:",
+					this.likeModel.schema.path("content")?.isRequired,
+				);
 				console.log("Like model name:", this.likeModel.modelName);
 				console.log("Creating like with:", { postId, userId, tenantId });
 				const like = new this.likeModel({

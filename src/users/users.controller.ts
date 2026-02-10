@@ -6,12 +6,10 @@ import {
 	Param,
 	Post,
 	Put,
-	UseGuards,
 } from "@nestjs/common";
 import type { UserDocument } from "src/schemas/users.schema";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
-import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 // biome-ignore lint/style/useImportType: NestJS uses this for dependency injection.
 import { UsersService } from "./users.service";
 

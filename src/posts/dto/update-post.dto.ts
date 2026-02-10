@@ -1,4 +1,4 @@
-import { Allow, IsOptional, IsString, IsEnum } from "class-validator";
+import { Allow, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class UpdateDraftDto {
 	@IsOptional()
@@ -27,4 +27,3 @@ export class UpdateDraftDto {
 }
 
 export class PublishPostDto {}
-

@@ -11,9 +11,9 @@ import { Types } from "mongoose";
 import slugify from "slugify";
 import { calculateReadingTime } from "src/lib/post-helper";
 import { Post, type PostDocument } from "src/schemas/post.schema";
-import type { CommentsService } from "../comments/comments.service";
+import { CommentsService } from "../comments/comments.service";
 import { TenantBaseService } from "../common/services/tenant-base.service";
-import type { LikesService } from "../likes/likes.service";
+import { LikesService } from "../likes/likes.service";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import { COMMENTS_SERVICE, LIKES_SERVICE } from "./posts.constants";
 
@@ -68,8 +68,13 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		let wordCount = post.wordCount || 0;
 		if (typeof finalContent === "string" && finalContent.trim()) {
 			// Strip HTML tags and calculate word count
-			const textOnly = finalContent.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-			wordCount = textOnly ? textOnly.split(/\s+/).filter((w) => w.length > 0).length : 0;
+			const textOnly = finalContent
+				.replace(/<[^>]*>/g, " ")
+				.replace(/\s+/g, " ")
+				.trim();
+			wordCount = textOnly
+				? textOnly.split(/\s+/).filter((w) => w.length > 0).length
+				: 0;
 		}
 
 		// Update post with new data if provided
@@ -107,7 +112,10 @@ export class PostsService extends TenantBaseService<PostDocument> {
 	) {
 		const updatePayload: UpdateDraftData = { ...data };
 
-		console.log("[DEBUG updateDraft] received data:", JSON.stringify(data).substring(0, 200));
+		console.log(
+			"[DEBUG updateDraft] received data:",
+			JSON.stringify(data).substring(0, 200),
+		);
 
 		if (data.content) {
 			// Handle content: convert object to JSON string if needed
@@ -120,7 +128,12 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			const { words, minutes } = calculateReadingTime(contentString);
 			updatePayload.wordCount = words;
 			updatePayload.readingTime = minutes;
-			console.log("[DEBUG updateDraft] calculated wordCount:", words, "minutes:", minutes);
+			console.log(
+				"[DEBUG updateDraft] calculated wordCount:",
+				words,
+				"minutes:",
+				minutes,
+			);
 		}
 
 		// Rename image to coverImage for schema compatibility
@@ -146,7 +159,10 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new NotFoundException("Post not found or unauthorized");
 		}
 
-		console.log("[DEBUG updateDraft] saved post.wordCount:", updatedPost.wordCount);
+		console.log(
+			"[DEBUG updateDraft] saved post.wordCount:",
+			updatedPost.wordCount,
+		);
 
 		return updatedPost;
 	}
@@ -355,13 +371,17 @@ export class PostsService extends TenantBaseService<PostDocument> {
 	}
 
 	async getPostById(id: string) {
+		console.log("[PostsService] getPostById called with id:", id);
 		const post = await this.postModel
 			.findById(id)
 			.populate("authorId", "name email avatar")
 			.exec();
 
+		console.log("[PostsService] post found:", post ? "yes" : "no");
+
 		if (!post) {
-			throw new Error("Post not found");
+			console.log("[PostsService] Throwing NotFoundException for id:", id);
+			throw new NotFoundException("Post not found");
 		}
 
 		return {

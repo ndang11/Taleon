@@ -14,7 +14,11 @@ export class Post {
 	@Prop({ type: String, required: true })
 	content!: string;
 
-	@Prop({ unique: true, index: true, default: () => new Types.ObjectId().toString() })
+	@Prop({
+		unique: true,
+		index: true,
+		default: () => new Types.ObjectId().toString(),
+	})
 	slug!: string;
 
 	@Prop({ default: "draft", enum: ["draft", "published"], index: true })
