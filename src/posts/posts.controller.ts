@@ -17,7 +17,6 @@ import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdateDraftDto } from "./dto/update-post.dto";
 import { PostsService } from "./posts.service";
 
-// Type alias for the authenticated user
 interface AuthenticatedUser {
 	userId: string;
 	email: string;
@@ -108,7 +107,6 @@ export class PostsController {
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
-		// Access user from request object (populated by JwtAuthGuard)
 		const user = req.user as {
 			userId: string;
 			tenantId: string;
@@ -134,7 +132,6 @@ export class PostsController {
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
-		// Access user from request object (populated by JwtAuthGuard)
 		const user = req.user as {
 			userId: string;
 			tenantId: string;

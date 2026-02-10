@@ -9,6 +9,7 @@ import { FollowsModule } from "./follows/follows.module";
 import { HealthController } from "./health/health.controller";
 import { LikesModule } from "./likes/likes.module";
 import { MultiTenantModule } from "./multi-tenant/multi-tenant.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 import { PostsModule } from "./posts/posts.module";
 import { TenantsModule } from "./tenants/tenants.module";
 import { UploadModule } from "./upload/upload.module";
@@ -32,6 +33,7 @@ import { UsersModule } from "./users/users.module";
 		LikesModule,
 		FollowsModule,
 		UploadModule,
+		NotificationsModule,
 	],
 	controllers: [AppController, HealthController],
 	providers: [AppService],
