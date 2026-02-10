@@ -9,8 +9,13 @@ import {
 } from "class-validator";
 
 export class PostContent {
+	@IsOptional()
 	blocks?: any[];
+
+	@IsOptional()
 	time?: number;
+
+	@IsOptional()
 	version?: string;
 }
 
@@ -47,4 +52,8 @@ export class CreatePostDto {
 	@IsOptional()
 	@IsBoolean()
 	isPublic?: boolean;
+
+	@IsOptional()
+	@IsString()
+	subtitle?: string;
 }

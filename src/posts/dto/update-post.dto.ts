@@ -22,8 +22,19 @@ export class UpdateDraftDto {
 	image?: string;
 
 	@IsOptional()
+	@IsString()
+	subtitle?: string;
+
+	@IsOptional()
 	@IsEnum(["draft", "published", "unpublished", "archived"])
 	status?: "draft" | "published" | "unpublished" | "archived";
 }
 
-export class PublishPostDto {}
+export class PublishPostDto {
+	@IsOptional()
+	@IsString()
+	title?: string;
+
+	@IsOptional()
+	content?: string | Record<string, unknown>;
+}
