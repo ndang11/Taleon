@@ -36,6 +36,5 @@ export class PublishPostDto {
 	title?: string;
 
 	@IsOptional()
-	@IsString()
 	content?: string | Record<string, unknown>;
 }
