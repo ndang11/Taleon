@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import type { Model } from "mongoose";
-import { Tenant, type TenantDocument } from "src/schemas/tenants.schema";
 import type { CreateTenantDto } from "../dto/create-tenant.dto";
 import type { UpdateTenantDto } from "../dto/update-tenant.dto";
+import { Tenant, type TenantDocument } from "../schemas/tenants.schema";
 /**
  * Service for managing tenant operations.
  */

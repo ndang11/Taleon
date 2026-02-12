@@ -9,11 +9,11 @@ import { InjectModel } from "@nestjs/mongoose";
 import type { Model } from "mongoose";
 import { Types } from "mongoose";
 import slugify from "slugify";
-import { calculateReadingTime } from "src/lib/post-helper";
-import { Post, type PostDocument } from "src/schemas/post.schema";
-import { CommentsService } from "../comments/comments.service";
+import type { CommentsService } from "../comments/comments.service";
 import { TenantBaseService } from "../common/services/tenant-base.service";
-import { LikesService } from "../likes/likes.service";
+import { calculateReadingTime } from "../lib/post-helper";
+import type { LikesService } from "../likes/likes.service";
+import { Post, type PostDocument } from "../schemas/post.schema";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import { COMMENTS_SERVICE, LIKES_SERVICE } from "./posts.constants";
 
@@ -68,12 +68,12 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		let wordCount = post.wordCount || 0;
 		if (typeof finalContent === "string" && finalContent.trim()) {
 			// Strip HTML tags and calculate word count
-			const textOnly = finalContent
+			const strippedContent = finalContent
 				.replace(/<[^>]*>/g, " ")
 				.replace(/\s+/g, " ")
 				.trim();
-			wordCount = textOnly
-				? textOnly.split(/\s+/).filter((w) => w.length > 0).length
+			wordCount = strippedContent
+				? strippedContent.split(/\s+/).filter((w) => w.length > 0).length
 				: 0;
 		}
 
@@ -213,7 +213,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		// Add image alias for frontend compatibility
 		const postsWithImage = posts.map((post) => ({
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		}));
 
@@ -258,7 +258,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		// Add image alias for frontend compatibility
 		const postsWithImage = posts.map((post) => ({
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		}));
 
@@ -338,8 +338,8 @@ export class PostsService extends TenantBaseService<PostDocument> {
 						tenantId,
 					);
 					return {
-						...(post.toObject() as any),
-						image: post.coverImage, // Alias for frontend compatibility
+						...(post.toObject() as unknown as Post),
+						image: post.coverImage,
 						viewCount: post.viewCount || 0,
 						likeCount,
 						commentCount,
@@ -347,7 +347,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 				} catch (error) {
 					console.error(`Error getting counts for post ${post._id}:`, error);
 					return {
-						...(post.toObject() as any),
+						...(post.toObject() as unknown as Post),
 						image: post.coverImage,
 						viewCount: post.viewCount || 0,
 						likeCount: 0,
@@ -385,7 +385,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		return {
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		};
 	}
@@ -408,7 +408,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		return {
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		};
 	}
@@ -495,69 +495,5 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		return archivedPost;
-	}
-
-	async getUserDrafts(
-		tenantId: string,
-		userId: string,
-		page: number = 1,
-		limit: number = 20,
-	) {
-		const skip = (page - 1) * limit;
-		const tenantObjectId = new Types.ObjectId(tenantId);
-		const userObjectId = new Types.ObjectId(userId);
-
-		const posts = await this.postModel
-			.find({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "draft",
-			})
-			.sort({ updatedAt: -1 })
-			.skip(skip)
-			.limit(limit)
-			.exec();
-
-		const total = await this.postModel
-			.countDocuments({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "draft",
-			})
-			.exec();
-
-		return { posts, total, page, limit };
-	}
-
-	async getUserArchived(
-		tenantId: string,
-		userId: string,
-		page: number = 1,
-		limit: number = 20,
-	) {
-		const skip = (page - 1) * limit;
-		const tenantObjectId = new Types.ObjectId(tenantId);
-		const userObjectId = new Types.ObjectId(userId);
-
-		const posts = await this.postModel
-			.find({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "archived",
-			})
-			.sort({ updatedAt: -1 })
-			.skip(skip)
-			.limit(limit)
-			.exec();
-
-		const total = await this.postModel
-			.countDocuments({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "archived",
-			})
-			.exec();
-
-		return { posts, total, page, limit };
 	}
 }
