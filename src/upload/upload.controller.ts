@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
-import type { UploadService } from "./upload.service";
+import { UploadService } from "./upload.service";
 
 @Controller("upload")
 export class UploadController {
