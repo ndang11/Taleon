@@ -110,6 +110,10 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		postId: string,
 		data: UpdateDraftData,
 	) {
+		if (!data) {
+			throw new BadRequestException("No data provided for update");
+		}
+
 		const updatePayload: UpdateDraftData = { ...data };
 
 		console.log(
