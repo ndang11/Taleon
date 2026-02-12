@@ -483,12 +483,27 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		};
 	}
 
-	async incrementView(postId: string): Promise<PostDocument> {
-		const post = await this.postModel.findByIdAndUpdate(
-			postId,
-			{ $inc: { viewCount: 1 } },
-			{ new: true },
-		);
+	async incrementView(postIdOrSlug: string): Promise<PostDocument> {
+		// Check if it's a valid ObjectId, otherwise treat as slug
+		const isValidObjectId = Types.ObjectId.isValid(postIdOrSlug);
+
+		let post: PostDocument | null;
+
+		if (isValidObjectId && postIdOrSlug.length === 24) {
+			// It's likely an ObjectId
+			post = await this.postModel.findByIdAndUpdate(
+				postIdOrSlug,
+				{ $inc: { viewCount: 1 } },
+				{ new: true },
+			);
+		} else {
+			// Treat as slug
+			post = await this.postModel.findOneAndUpdate(
+				{ slug: postIdOrSlug },
+				{ $inc: { viewCount: 1 } },
+				{ new: true },
+			);
+		}
 
 		if (!post) {
 			throw new NotFoundException("Post not found");
