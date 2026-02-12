@@ -11,17 +11,11 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
 	app.enableCors({
-		origin: [
-			"https://frontend-taleon.onrender.com",
-			"http://localhost:3000",
-			"http://localhost:3001",
-		],
+		origin: true,
 		methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
 		credentials: true,
-		allowedHeaders:
-			"Content-Type, Accept, Authorization, X-Requested-With, Access-Control-Allow-Origin",
-		exposedHeaders: "Authorization, Set-Cookie",
-		maxAge: 86400,
+		allowedHeaders: "Content-Type, Authorization, X-Requested-With",
+		exposedHeaders: "Authorization",
 	});
 
 	app.use(cookieParser());
