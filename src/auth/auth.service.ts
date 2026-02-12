@@ -5,12 +5,12 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException,
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import type { JwtService } from "@nestjs/jwt";
 import { InjectConnection, InjectModel } from "@nestjs/mongoose";
 import * as bcrypt from "bcrypt";
 import type { Connection, Model } from "mongoose";
 import slugify from "slugify";
-import type { LoginDto } from "src/dto/login.dto";
+import type { LoginDto } from "../dto/login.dto";
 import type { RegisterDto } from "../dto/register.dto";
 import { Tenant, type TenantDocument } from "../schemas/tenants.schema";
 import { User, type UserDocument } from "../schemas/users.schema";
