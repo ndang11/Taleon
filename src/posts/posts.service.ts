@@ -370,6 +370,76 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		};
 	}
 
+	async getUserArchived(
+		tenantId: string,
+		userId: string,
+		page: number = 1,
+		limit: number = 10,
+	) {
+		const skip = (page - 1) * limit;
+		const tenantObjectId = new Types.ObjectId(tenantId);
+		const userObjectId = new Types.ObjectId(userId);
+
+		const posts = await this.postModel
+			.find({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "archived",
+			})
+			.sort({ updatedAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.exec();
+
+		// Get like and comment counts for each post
+		const postsWithCounts = await Promise.all(
+			posts.map(async (post) => {
+				try {
+					const likeCount = await this.likesService.getLikeCount(
+						post._id.toString(),
+						tenantId,
+					);
+					const commentCount = await this.commentsService.getCommentCount(
+						post._id.toString(),
+						tenantId,
+					);
+					return {
+						...(post.toObject() as unknown as Post),
+						image: post.coverImage,
+						viewCount: post.viewCount || 0,
+						likeCount,
+						commentCount,
+					};
+				} catch (error) {
+					console.error(`Error getting counts for post ${post._id}:`, error);
+					return {
+						...(post.toObject() as unknown as Post),
+						image: post.coverImage,
+						viewCount: post.viewCount || 0,
+						likeCount: 0,
+						commentCount: 0,
+					};
+				}
+			}),
+		);
+
+		const total = await this.postModel
+			.countDocuments({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "archived",
+			})
+			.exec();
+
+		return {
+			posts: postsWithCounts,
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
+		};
+	}
+
 	async getPostById(id: string) {
 		console.log("[PostsService] getPostById called with id:", id);
 		const post = await this.postModel
