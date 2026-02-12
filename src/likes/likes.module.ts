@@ -38,7 +38,7 @@ FixedLikeSchema.index({ postId: 1, userId: 1 }, { unique: true });
 @Module({
 	imports: [
 		MongooseModule.forFeature([{ name: "Like", schema: FixedLikeSchema }]),
-		MultiTenantModule,
+		forwardRef(() => MultiTenantModule),
 		forwardRef(() => PostsModule),
 	],
 	controllers: [LikesController],
