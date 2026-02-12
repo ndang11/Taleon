@@ -38,7 +38,7 @@ export class UploadController {
 			},
 		}),
 	)
-	async uploadPostImage(@UploadedFile() file: Express.Multer.File) {
+	async uploadPostImage(@UploadedFile() file: any) {
 		this.logger.log(`Uploading post image: ${file?.originalname}`);
 
 		if (!file) {
@@ -78,7 +78,7 @@ export class UploadController {
 			},
 		}),
 	)
-	async uploadCoverImage(@UploadedFile() file: Express.Multer.File) {
+	async uploadCoverImage(@UploadedFile() file: any) {
 		this.logger.log(`Uploading cover image: ${file?.originalname}`);
 
 		if (!file) {
@@ -118,7 +118,7 @@ export class UploadController {
 			},
 		}),
 	)
-	async uploadProfileImage(@UploadedFile() file: Express.Multer.File) {
+	async uploadProfileImage(@UploadedFile() file: any) {
 		this.logger.log(`Uploading profile image: ${file?.originalname}`);
 
 		if (!file) {
