@@ -114,9 +114,19 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		const updatePayload: UpdateDraftData = { ...data };
 
+		// Safe stringify function that always returns a string
+		const safeStringify = (obj: unknown): string => {
+			if (obj === undefined) return "undefined";
+			try {
+				return JSON.stringify(obj);
+			} catch {
+				return "[circular or unstringifiable]";
+			}
+		};
+
 		console.log(
 			"[DEBUG updateDraft] received data:",
-			data ? JSON.stringify(data).substring(0, 200) : "undefined",
+			safeStringify(data).substring(0, 200),
 		);
 
 		if (data.content) {
