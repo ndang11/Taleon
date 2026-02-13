@@ -4,9 +4,7 @@ import type { Model } from "mongoose";
 import type { CreateTenantDto } from "../dto/create-tenant.dto";
 import type { UpdateTenantDto } from "../dto/update-tenant.dto";
 import { Tenant, type TenantDocument } from "../schemas/tenants.schema";
-/**
- * Service for managing tenant operations.
- */
+
 @Injectable()
 export class TenantsService {
 	constructor(

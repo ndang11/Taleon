@@ -17,7 +17,6 @@ import { Public } from "../common/decorators/public.decorator";
 import type { AutosavePostDto } from "./dto/autosave-post.dto";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdateDraftDto } from "./dto/update-post.dto";
-// biome-ignore lint/style/useImportType: PostsService is needed for NestJS DI at runtime
 import { PostsService } from "./posts.service";
 
 interface AuthenticatedUser {

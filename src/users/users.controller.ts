@@ -10,7 +10,6 @@ import {
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import type { UserDocument } from "../schemas/users.schema";
-// biome-ignore lint/style/useImportType: NestJS uses this for dependency injection.
 import { UsersService } from "./users.service";
 
 @Controller("users")

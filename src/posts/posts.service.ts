@@ -57,14 +57,12 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new NotFoundException("Post not found or unauthorized");
 		}
 
-		// Use provided data or fall back to existing post data
 		const finalTitle = data?.title || post.title;
 		const finalContent = data?.content || post.content;
 
 		console.log("[DEBUG publish] finalTitle:", finalTitle);
 		console.log("[DEBUG publish] finalContent type:", typeof finalContent);
 
-		// Calculate word count for string content
 		let wordCount = post.wordCount || 0;
 		if (typeof finalContent === "string" && finalContent.trim()) {
 			// Strip HTML tags and calculate word count
@@ -122,7 +120,6 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		);
 
 		if (data.content) {
-			// Handle content: convert object to JSON string if needed
 			const contentString =
 				typeof data.content === "string"
 					? data.content
@@ -140,7 +137,6 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			);
 		}
 
-		// Rename image to coverImage for schema compatibility
 		if (data.image) {
 			updatePayload.coverImage = data.image;
 			delete updatePayload.image;
