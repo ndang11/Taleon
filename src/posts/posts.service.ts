@@ -114,21 +114,15 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		const updatePayload: UpdateDraftData = { ...data };
 
-		// Safe stringify function that always returns a string
-		const safeStringify = (obj: unknown): string => {
-			if (obj === undefined) return "undefined";
-			try {
-				return JSON.stringify(obj);
-			} catch {
-				return "[circular or unstringifiable]";
+		// Safe stringify with null check - always returns a string
+		const getDebugString = (obj: unknown): string => {
+			if (obj === null || obj === undefined) {
+				return "undefined";
 			}
+			return String(obj).substring(0, 200);
 		};
 
-		// Force fresh build - cache cleared
-		console.log(
-			"[DEBUG updateDraft] received data:",
-			safeStringify(data).substring(0, 200),
-		);
+		console.log("[DEBUG updateDraft] received data:", getDebugString(data));
 
 		if (data.content) {
 			const contentString =
