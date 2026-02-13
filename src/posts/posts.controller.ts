@@ -11,10 +11,13 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
+import type { AutosavePostDto } from "./dto/autosave-post.dto";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdateDraftDto } from "./dto/update-post.dto";
+// biome-ignore lint/style/useImportType: PostsService is needed for NestJS DI at runtime
 import { PostsService } from "./posts.service";
 
 interface AuthenticatedUser {
@@ -41,7 +44,7 @@ export class PostsController {
 	autoSave(
 		@CurrentUser() user: AuthenticatedUser,
 		@Param("id") id: string,
-		@Body() dto: UpdateDraftDto,
+		@Body() dto: AutosavePostDto,
 	) {
 		return this.postsService.updateDraft(user.tenantId, user.userId, id, dto);
 	}
@@ -76,12 +79,8 @@ export class PostsController {
 
 	@UseGuards(AuthGuard("jwt"))
 	@Get("slug/:slug")
-	async getUserPostBySlug(@Req() req: any, @Param("slug") slug: string) {
-		const user = req.user as {
-			userId: string;
-			tenantId: string;
-			email: string;
-		};
+	async getUserPostBySlug(@Req() req: Request, @Param("slug") slug: string) {
+		const user = req.user as AuthenticatedUser;
 
 		if (!user || !user.userId || !user.tenantId) {
 			throw new Error("User not authenticated properly");
@@ -103,15 +102,11 @@ export class PostsController {
 	@UseGuards(AuthGuard("jwt"))
 	@Get("user")
 	async getUserPosts(
-		@Req() req: any,
+		@Req() req: Request,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
-		const user = req.user as {
-			userId: string;
-			tenantId: string;
-			email: string;
-		};
+		const user = req.user as AuthenticatedUser;
 
 		if (!user || !user.userId || !user.tenantId) {
 			throw new Error("User not authenticated properly");
@@ -128,15 +123,11 @@ export class PostsController {
 	@UseGuards(AuthGuard("jwt"))
 	@Get("tenant-published")
 	async getTenantPublishedPosts(
-		@Req() req: any,
+		@Req() req: Request,
 		@Query("page") page: string = "1",
 		@Query("limit") limit: string = "10",
 	) {
-		const user = req.user as {
-			userId: string;
-			tenantId: string;
-			email: string;
-		};
+		const user = req.user as AuthenticatedUser;
 
 		if (!user || !user.tenantId) {
 			throw new Error("User not authenticated properly");
