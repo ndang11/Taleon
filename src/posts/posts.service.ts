@@ -29,6 +29,29 @@ interface UpdateDraftData {
 
 @Injectable()
 export class PostsService extends TenantBaseService<PostDocument> {
+	/**
+	 * Safely get a preview of content for logging
+	 */
+	private safeContentPreview(
+		content: string | Record<string, unknown> | null | undefined,
+	): string {
+		if (content === null || content === undefined) {
+			return "(empty)";
+		}
+		if (typeof content === "string") {
+			try {
+				return content.substring(0, 100) || "(empty string)";
+			} catch {
+				return "(error getting substring)";
+			}
+		}
+		try {
+			return JSON.stringify(content).substring(0, 100);
+		} catch {
+			return "(non-serializable)";
+		}
+	}
+
 	constructor(
 		@InjectModel(Post.name) private postModel: Model<PostDocument>,
 		@Inject(COMMENTS_SERVICE) private commentsService: CommentsService,
@@ -66,7 +89,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		console.log("[DEBUG publish] Current post.title:", post.title);
 		console.log(
 			"[DEBUG publish] Current post.content:",
-			post.content?.substring?.(0, 100),
+			this.safeContentPreview(post.content),
 		);
 
 		// Use data.title if provided, otherwise keep existing post.title
@@ -84,9 +107,9 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		console.log("[DEBUG publish] finalContent type:", typeof finalContent);
 		console.log(
 			"[DEBUG publish] finalContent:",
-			typeof finalContent === "string"
-				? finalContent.substring(0, 100)
-				: JSON.stringify(finalContent).substring(0, 100),
+			this.safeContentPreview(
+				finalContent as Parameters<typeof this.safeContentPreview>[0],
+			),
 		);
 
 		// Calculate word count from finalContent
