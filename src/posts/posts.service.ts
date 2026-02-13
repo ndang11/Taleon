@@ -124,6 +124,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			}
 		};
 
+		// Force fresh build - cache cleared
 		console.log(
 			"[DEBUG updateDraft] received data:",
 			safeStringify(data).substring(0, 200),
