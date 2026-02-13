@@ -47,6 +47,12 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		const tenantObjectId = new Types.ObjectId(tenantId);
 		const userObjectId = new Types.ObjectId(userId);
 
+		console.log("[DEBUG publish] Called with postId:", postId);
+		console.log(
+			"[DEBUG publish] Received data:",
+			JSON.stringify(data, null, 2),
+		);
+
 		const post = await this.postModel.findOne({
 			_id: postObjectId,
 			tenantId: tenantObjectId,
@@ -57,13 +63,34 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new NotFoundException("Post not found or unauthorized");
 		}
 
-		const finalTitle = data?.title || post.title;
-		const finalContent = data?.content || post.content;
+		console.log("[DEBUG publish] Current post.title:", post.title);
+		console.log(
+			"[DEBUG publish] Current post.content:",
+			post.content?.substring?.(0, 100),
+		);
+
+		// Use data.title if provided, otherwise keep existing post.title
+		const finalTitle =
+			data?.title !== undefined && data?.title !== null
+				? data.title
+				: post.title;
+		// Use data.content if provided, otherwise keep existing post.content
+		const finalContent =
+			data?.content !== undefined && data?.content !== null
+				? data.content
+				: post.content;
 
 		console.log("[DEBUG publish] finalTitle:", finalTitle);
 		console.log("[DEBUG publish] finalContent type:", typeof finalContent);
+		console.log(
+			"[DEBUG publish] finalContent:",
+			typeof finalContent === "string"
+				? finalContent.substring(0, 100)
+				: JSON.stringify(finalContent).substring(0, 100),
+		);
 
-		let wordCount = post.wordCount || 0;
+		// Calculate word count from finalContent
+		let wordCount = 0;
 		if (typeof finalContent === "string" && finalContent.trim()) {
 			// Strip HTML tags and calculate word count
 			const strippedContent = finalContent
@@ -73,19 +100,14 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			wordCount = strippedContent
 				? strippedContent.split(/\s+/).filter((w) => w.length > 0).length
 				: 0;
-		}
-
-		// Update post with new data if provided
-		if (data?.title) {
-			post.title = data.title;
-		}
-		if (data?.content) {
-			const contentString =
-				typeof data.content === "string"
-					? data.content
-					: JSON.stringify(data.content);
-			post.content = contentString;
-			post.wordCount = wordCount;
+		} else if (typeof finalContent === "object" && finalContent !== null) {
+			// Handle TipTap JSON format
+			try {
+				const textContent = this.extractTextFromTipTap(finalContent);
+				wordCount = textContent.split(/\s+/).filter((w) => w.length > 0).length;
+			} catch (e) {
+				console.error("[DEBUG publish] Error extracting text from JSON:", e);
+			}
 		}
 
 		console.log("[DEBUG publish] wordCount:", wordCount);
@@ -96,10 +118,67 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			);
 		}
 
+		// Always update title and content when publishing
+		if (finalTitle !== post.title) {
+			post.title = finalTitle;
+			console.log("[DEBUG publish] Updated title to:", finalTitle);
+		}
+
+		// Update content with proper string handling
+		if (finalContent !== post.content) {
+			const contentString =
+				typeof finalContent === "string"
+					? finalContent
+					: JSON.stringify(finalContent);
+			post.content = contentString;
+			post.wordCount = wordCount;
+			console.log(
+				"[DEBUG publish] Updated content to:",
+				contentString.substring(0, 100),
+			);
+		}
+
 		post.status = "published";
 		post.publishedAt = new Date();
 
-		return post.save();
+		console.log("[DEBUG publish] Saving post with status: published");
+		const savedPost = await post.save();
+		console.log(
+			"[DEBUG publish] Post saved successfully. Title:",
+			savedPost.title,
+		);
+
+		return savedPost;
+	}
+
+	// Helper method to extract text from TipTap JSON format
+	private extractTextFromTipTap(content: Record<string, unknown>): string {
+		if (!content || !content.content) return "";
+
+		const textContent: string[] = [];
+		const extractText = (nodes: unknown[]) => {
+			nodes.forEach((node) => {
+				if (typeof node === "object" && node !== null) {
+					const n = node as {
+						type?: string;
+						text?: string;
+						content?: unknown[];
+					};
+					if (n.type === "text" && n.text) {
+						textContent.push(n.text);
+					}
+					if (n.content && Array.isArray(n.content)) {
+						extractText(n.content);
+					}
+				}
+			});
+		};
+
+		if (Array.isArray(content.content)) {
+			extractText(content.content);
+		}
+
+		return textContent.join(" ");
 	}
 
 	async updateDraft(
