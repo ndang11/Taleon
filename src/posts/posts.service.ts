@@ -118,7 +118,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		console.log(
 			"[DEBUG updateDraft] received data:",
-			JSON.stringify(data).substring(0, 200),
+			data ? JSON.stringify(data).substring(0, 200) : "undefined",
 		);
 
 		if (data.content) {
