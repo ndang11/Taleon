@@ -23,11 +23,11 @@ describe("NotificationsController", () => {
 		link: "/post/123",
 		createdAt: new Date(),
 		updatedAt: new Date(),
-	};
+	} as any;
 
-	const mockRequest: { user: typeof mockUser } = {
+	const mockRequest = {
 		user: mockUser,
-	};
+	} as any;
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({

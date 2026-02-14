@@ -36,10 +36,14 @@ export class PublishPostDto {
 	title?: string;
 
 	@IsOptional()
-	@IsString()
+	@IsDefined()
 	content?: string | Record<string, unknown>;
 
 	@IsOptional()
 	@IsString()
 	category?: string;
+
+	@IsOptional()
+	@IsString()
+	image?: string;
 }

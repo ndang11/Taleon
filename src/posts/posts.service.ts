@@ -64,7 +64,11 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		tenantId: string,
 		userId: string,
 		postId: string,
-		data?: { title?: string; content?: string | Record<string, unknown> },
+		data?: {
+			title?: string;
+			content?: string | Record<string, unknown>;
+			image?: string;
+		},
 	): Promise<PostDocument> {
 		const postObjectId = new Types.ObjectId(postId);
 		const tenantObjectId = new Types.ObjectId(tenantId);
@@ -159,6 +163,12 @@ export class PostsService extends TenantBaseService<PostDocument> {
 				"[DEBUG publish] Updated content to:",
 				contentString.substring(0, 100),
 			);
+		}
+
+		// Update coverImage if provided
+		if (data?.image !== undefined && data?.image !== null) {
+			post.coverImage = data.image;
+			console.log("[DEBUG publish] Updated coverImage to:", data.image);
 		}
 
 		post.status = "published";
