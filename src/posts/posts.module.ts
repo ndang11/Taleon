@@ -14,7 +14,7 @@ import { PostsService } from "./posts.service";
 @Module({
 	imports: [
 		MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
-		MultiTenantModule,
+		forwardRef(() => MultiTenantModule),
 		CommentsModule,
 		forwardRef(() => LikesModule),
 	],

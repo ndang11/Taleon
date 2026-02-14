@@ -9,11 +9,11 @@ import { InjectModel } from "@nestjs/mongoose";
 import type { Model } from "mongoose";
 import { Types } from "mongoose";
 import slugify from "slugify";
-import { calculateReadingTime } from "src/lib/post-helper";
-import { Post, type PostDocument } from "src/schemas/post.schema";
-import { CommentsService } from "../comments/comments.service";
+import type { CommentsService } from "../comments/comments.service";
 import { TenantBaseService } from "../common/services/tenant-base.service";
-import { LikesService } from "../likes/likes.service";
+import { calculateReadingTime } from "../lib/post-helper";
+import type { LikesService } from "../likes/likes.service";
+import { Post, type PostDocument } from "../schemas/post.schema";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import { COMMENTS_SERVICE, LIKES_SERVICE } from "./posts.constants";
 
@@ -29,6 +29,29 @@ interface UpdateDraftData {
 
 @Injectable()
 export class PostsService extends TenantBaseService<PostDocument> {
+	/**
+	 * Safely get a preview of content for logging
+	 */
+	private safeContentPreview(
+		content: string | Record<string, unknown> | null | undefined,
+	): string {
+		if (content === null || content === undefined) {
+			return "(empty)";
+		}
+		if (typeof content === "string") {
+			try {
+				return content.substring(0, 100) || "(empty string)";
+			} catch {
+				return "(error getting substring)";
+			}
+		}
+		try {
+			return JSON.stringify(content).substring(0, 100);
+		} catch {
+			return "(non-serializable)";
+		}
+	}
+
 	constructor(
 		@InjectModel(Post.name) private postModel: Model<PostDocument>,
 		@Inject(COMMENTS_SERVICE) private commentsService: CommentsService,
@@ -41,11 +64,21 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		tenantId: string,
 		userId: string,
 		postId: string,
-		data?: { title?: string; content?: string | Record<string, unknown> },
+		data?: {
+			title?: string;
+			content?: string | Record<string, unknown>;
+			image?: string;
+		},
 	): Promise<PostDocument> {
 		const postObjectId = new Types.ObjectId(postId);
 		const tenantObjectId = new Types.ObjectId(tenantId);
 		const userObjectId = new Types.ObjectId(userId);
+
+		console.log("[DEBUG publish] Called with postId:", postId);
+		console.log(
+			"[DEBUG publish] Received data:",
+			JSON.stringify(data, null, 2),
+		);
 
 		const post = await this.postModel.findOne({
 			_id: postObjectId,
@@ -57,37 +90,51 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new NotFoundException("Post not found or unauthorized");
 		}
 
-		// Use provided data or fall back to existing post data
-		const finalTitle = data?.title || post.title;
-		const finalContent = data?.content || post.content;
+		console.log("[DEBUG publish] Current post.title:", post.title);
+		console.log(
+			"[DEBUG publish] Current post.content:",
+			this.safeContentPreview(post.content),
+		);
+
+		// Use data.title if provided, otherwise keep existing post.title
+		const finalTitle =
+			data?.title !== undefined && data?.title !== null
+				? data.title
+				: post.title;
+		// Use data.content if provided, otherwise keep existing post.content
+		const finalContent =
+			data?.content !== undefined && data?.content !== null
+				? data.content
+				: post.content;
 
 		console.log("[DEBUG publish] finalTitle:", finalTitle);
 		console.log("[DEBUG publish] finalContent type:", typeof finalContent);
+		console.log(
+			"[DEBUG publish] finalContent:",
+			this.safeContentPreview(
+				finalContent as string | Record<string, unknown> | null | undefined,
+			),
+		);
 
-		// Calculate word count for string content
-		let wordCount = post.wordCount || 0;
+		// Calculate word count from finalContent
+		let wordCount = 0;
 		if (typeof finalContent === "string" && finalContent.trim()) {
 			// Strip HTML tags and calculate word count
-			const textOnly = finalContent
+			const strippedContent = finalContent
 				.replace(/<[^>]*>/g, " ")
 				.replace(/\s+/g, " ")
 				.trim();
-			wordCount = textOnly
-				? textOnly.split(/\s+/).filter((w) => w.length > 0).length
+			wordCount = strippedContent
+				? strippedContent.split(/\s+/).filter((w) => w.length > 0).length
 				: 0;
-		}
-
-		// Update post with new data if provided
-		if (data?.title) {
-			post.title = data.title;
-		}
-		if (data?.content) {
-			const contentString =
-				typeof data.content === "string"
-					? data.content
-					: JSON.stringify(data.content);
-			post.content = contentString;
-			post.wordCount = wordCount;
+		} else if (typeof finalContent === "object" && finalContent !== null) {
+			// Handle TipTap JSON format
+			try {
+				const textContent = this.extractTextFromTipTap(finalContent);
+				wordCount = textContent.split(/\s+/).filter((w) => w.length > 0).length;
+			} catch (e) {
+				console.error("[DEBUG publish] Error extracting text from JSON:", e);
+			}
 		}
 
 		console.log("[DEBUG publish] wordCount:", wordCount);
@@ -98,10 +145,73 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			);
 		}
 
+		// Always update title and content when publishing
+		if (finalTitle !== post.title) {
+			post.title = finalTitle;
+			console.log("[DEBUG publish] Updated title to:", finalTitle);
+		}
+
+		// Update content with proper string handling
+		if (finalContent !== post.content) {
+			const contentString =
+				typeof finalContent === "string"
+					? finalContent
+					: JSON.stringify(finalContent);
+			post.content = contentString;
+			post.wordCount = wordCount;
+			console.log(
+				"[DEBUG publish] Updated content to:",
+				contentString.substring(0, 100),
+			);
+		}
+
+		// Update coverImage if provided
+		if (data?.image !== undefined && data?.image !== null) {
+			post.coverImage = data.image;
+			console.log("[DEBUG publish] Updated coverImage to:", data.image);
+		}
+
 		post.status = "published";
 		post.publishedAt = new Date();
 
-		return post.save();
+		console.log("[DEBUG publish] Saving post with status: published");
+		const savedPost = await post.save();
+		console.log(
+			"[DEBUG publish] Post saved successfully. Title:",
+			savedPost.title,
+		);
+
+		return savedPost;
+	}
+
+	// Helper method to extract text from TipTap JSON format
+	private extractTextFromTipTap(content: Record<string, unknown>): string {
+		if (!content || !content.content) return "";
+
+		const textContent: string[] = [];
+		const extractText = (nodes: unknown[]) => {
+			nodes.forEach((node) => {
+				if (typeof node === "object" && node !== null) {
+					const n = node as {
+						type?: string;
+						text?: string;
+						content?: unknown[];
+					};
+					if (n.type === "text" && n.text) {
+						textContent.push(n.text);
+					}
+					if (n.content && Array.isArray(n.content)) {
+						extractText(n.content);
+					}
+				}
+			});
+		};
+
+		if (Array.isArray(content.content)) {
+			extractText(content.content);
+		}
+
+		return textContent.join(" ");
 	}
 
 	async updateDraft(
@@ -110,15 +220,23 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		postId: string,
 		data: UpdateDraftData,
 	) {
+		if (!data) {
+			throw new BadRequestException("No data provided for update");
+		}
+
 		const updatePayload: UpdateDraftData = { ...data };
 
-		console.log(
-			"[DEBUG updateDraft] received data:",
-			JSON.stringify(data).substring(0, 200),
-		);
+		// Safe stringify with null check - always returns a string
+		const getDebugString = (obj: unknown): string => {
+			if (obj === null || obj === undefined) {
+				return "undefined";
+			}
+			return String(obj).substring(0, 200);
+		};
+
+		console.log("[DEBUG updateDraft] received data:", getDebugString(data));
 
 		if (data.content) {
-			// Handle content: convert object to JSON string if needed
 			const contentString =
 				typeof data.content === "string"
 					? data.content
@@ -136,7 +254,6 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			);
 		}
 
-		// Rename image to coverImage for schema compatibility
 		if (data.image) {
 			updatePayload.coverImage = data.image;
 			delete updatePayload.image;
@@ -213,7 +330,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		// Add image alias for frontend compatibility
 		const postsWithImage = posts.map((post) => ({
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		}));
 
@@ -258,7 +375,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		// Add image alias for frontend compatibility
 		const postsWithImage = posts.map((post) => ({
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		}));
 
@@ -338,8 +455,8 @@ export class PostsService extends TenantBaseService<PostDocument> {
 						tenantId,
 					);
 					return {
-						...(post.toObject() as any),
-						image: post.coverImage, // Alias for frontend compatibility
+						...(post.toObject() as unknown as Post),
+						image: post.coverImage,
 						viewCount: post.viewCount || 0,
 						likeCount,
 						commentCount,
@@ -347,7 +464,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 				} catch (error) {
 					console.error(`Error getting counts for post ${post._id}:`, error);
 					return {
-						...(post.toObject() as any),
+						...(post.toObject() as unknown as Post),
 						image: post.coverImage,
 						viewCount: post.viewCount || 0,
 						likeCount: 0,
@@ -359,6 +476,76 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		const total = await this.postModel
 			.countDocuments({ tenantId: tenantObjectId, authorId: userObjectId })
+			.exec();
+
+		return {
+			posts: postsWithCounts,
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
+		};
+	}
+
+	async getUserArchived(
+		tenantId: string,
+		userId: string,
+		page: number = 1,
+		limit: number = 10,
+	) {
+		const skip = (page - 1) * limit;
+		const tenantObjectId = new Types.ObjectId(tenantId);
+		const userObjectId = new Types.ObjectId(userId);
+
+		const posts = await this.postModel
+			.find({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "archived",
+			})
+			.sort({ updatedAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.exec();
+
+		// Get like and comment counts for each post
+		const postsWithCounts = await Promise.all(
+			posts.map(async (post) => {
+				try {
+					const likeCount = await this.likesService.getLikeCount(
+						post._id.toString(),
+						tenantId,
+					);
+					const commentCount = await this.commentsService.getCommentCount(
+						post._id.toString(),
+						tenantId,
+					);
+					return {
+						...(post.toObject() as unknown as Post),
+						image: post.coverImage,
+						viewCount: post.viewCount || 0,
+						likeCount,
+						commentCount,
+					};
+				} catch (error) {
+					console.error(`Error getting counts for post ${post._id}:`, error);
+					return {
+						...(post.toObject() as unknown as Post),
+						image: post.coverImage,
+						viewCount: post.viewCount || 0,
+						likeCount: 0,
+						commentCount: 0,
+					};
+				}
+			}),
+		);
+
+		const total = await this.postModel
+			.countDocuments({
+				tenantId: tenantObjectId,
+				authorId: userObjectId,
+				status: "archived",
+			})
 			.exec();
 
 		return {
@@ -385,7 +572,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		return {
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		};
 	}
@@ -408,17 +595,32 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		return {
-			...(post.toObject() as any),
+			...(post.toObject() as unknown as Post),
 			image: post.coverImage,
 		};
 	}
 
-	async incrementView(postId: string): Promise<PostDocument> {
-		const post = await this.postModel.findByIdAndUpdate(
-			postId,
-			{ $inc: { viewCount: 1 } },
-			{ new: true },
-		);
+	async incrementView(postIdOrSlug: string): Promise<PostDocument> {
+		// Check if it's a valid ObjectId, otherwise treat as slug
+		const isValidObjectId = Types.ObjectId.isValid(postIdOrSlug);
+
+		let post: PostDocument | null;
+
+		if (isValidObjectId && postIdOrSlug.length === 24) {
+			// It's likely an ObjectId
+			post = await this.postModel.findByIdAndUpdate(
+				postIdOrSlug,
+				{ $inc: { viewCount: 1 } },
+				{ new: true },
+			);
+		} else {
+			// Treat as slug
+			post = await this.postModel.findOneAndUpdate(
+				{ slug: postIdOrSlug },
+				{ $inc: { viewCount: 1 } },
+				{ new: true },
+			);
+		}
 
 		if (!post) {
 			throw new NotFoundException("Post not found");
@@ -495,69 +697,5 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		return archivedPost;
-	}
-
-	async getUserDrafts(
-		tenantId: string,
-		userId: string,
-		page: number = 1,
-		limit: number = 20,
-	) {
-		const skip = (page - 1) * limit;
-		const tenantObjectId = new Types.ObjectId(tenantId);
-		const userObjectId = new Types.ObjectId(userId);
-
-		const posts = await this.postModel
-			.find({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "draft",
-			})
-			.sort({ updatedAt: -1 })
-			.skip(skip)
-			.limit(limit)
-			.exec();
-
-		const total = await this.postModel
-			.countDocuments({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "draft",
-			})
-			.exec();
-
-		return { posts, total, page, limit };
-	}
-
-	async getUserArchived(
-		tenantId: string,
-		userId: string,
-		page: number = 1,
-		limit: number = 20,
-	) {
-		const skip = (page - 1) * limit;
-		const tenantObjectId = new Types.ObjectId(tenantId);
-		const userObjectId = new Types.ObjectId(userId);
-
-		const posts = await this.postModel
-			.find({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "archived",
-			})
-			.sort({ updatedAt: -1 })
-			.skip(skip)
-			.limit(limit)
-			.exec();
-
-		const total = await this.postModel
-			.countDocuments({
-				tenantId: tenantObjectId,
-				authorId: userObjectId,
-				status: "archived",
-			})
-			.exec();
-
-		return { posts, total, page, limit };
 	}
 }

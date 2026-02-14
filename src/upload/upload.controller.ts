@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
-import type { UploadService } from "./upload.service";
+import { UploadService } from "./upload.service";
 
 @Controller("upload")
 export class UploadController {
@@ -26,7 +26,7 @@ export class UploadController {
 	@UseInterceptors(
 		FileInterceptor("file", {
 			storage: memoryStorage(),
-			limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+			limits: { fileSize: 10 * 1024 * 1024 },
 			fileFilter: (_req, file, callback) => {
 				if (!file.mimetype.match(/^image\/(jpg|jpeg|png|gif|webp)$/)) {
 					return callback(
@@ -38,7 +38,7 @@ export class UploadController {
 			},
 		}),
 	)
-	async uploadPostImage(@UploadedFile() file: Express.Multer.File) {
+	async uploadPostImage(@UploadedFile() file: any) {
 		this.logger.log(`Uploading post image: ${file?.originalname}`);
 
 		if (!file) {
@@ -78,7 +78,7 @@ export class UploadController {
 			},
 		}),
 	)
-	async uploadCoverImage(@UploadedFile() file: Express.Multer.File) {
+	async uploadCoverImage(@UploadedFile() file: any) {
 		this.logger.log(`Uploading cover image: ${file?.originalname}`);
 
 		if (!file) {
@@ -118,7 +118,7 @@ export class UploadController {
 			},
 		}),
 	)
-	async uploadProfileImage(@UploadedFile() file: Express.Multer.File) {
+	async uploadProfileImage(@UploadedFile() file: any) {
 		this.logger.log(`Uploading profile image: ${file?.originalname}`);
 
 		if (!file) {

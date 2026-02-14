@@ -18,10 +18,9 @@ export class TenantGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-		const isPublic = Reflect.getMetadata(
-			IS_PUBLIC_KEY,
-			context.getHandler(),
-		) || Reflect.getMetadata(IS_PUBLIC_KEY, context.getClass());
+		const isPublic =
+			Reflect.getMetadata(IS_PUBLIC_KEY, context.getHandler()) ||
+			Reflect.getMetadata(IS_PUBLIC_KEY, context.getClass());
 
 		if (isPublic) return true;
 

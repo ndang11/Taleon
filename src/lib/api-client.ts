@@ -1,5 +1,5 @@
 const API_URL =
-	process.env.NEXT_PUBLIC_API_URL ?? "https://taleon-sijl.onrender.com/api";
+	process.env.NEXT_PUBLIC_API_URL ?? "https://taleon-7rwt.onrender.com/api";
 
 export interface CreatePostRequest {
 	title: string;

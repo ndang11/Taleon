@@ -1,11 +1,8 @@
 import { Body, Controller, Post, Res } from "@nestjs/common";
 import type { Response } from "express";
-// biome-ignore lint/style/useImportType: DTOs must be values for validation metadata
-import { LoginDto } from "src/dto/login.dto";
-// biome-ignore lint/style/useImportType: DTOs must be values for validation metadata
-import { RegisterDto } from "src/dto/register.dto";
 import { Public } from "../common/decorators/public.decorator";
-// biome-ignore lint/style/useImportType: NestJS uses this for dependency injection.
+import { LoginDto } from "../dto/login.dto";
+import { RegisterDto } from "../dto/register.dto";
 import { AuthService } from "./auth.service";
 
 @Controller("auth")
