@@ -15,8 +15,8 @@ import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import type { AutosavePostDto } from "./dto/autosave-post.dto";
-import type { CreatePostDto } from "./dto/create-post.dto";
-import type { UpdateDraftDto } from "./dto/update-post.dto";
+import { type CreatePostDto } from "./dto/create-post.dto";
+import { type UpdateDraftDto } from "./dto/update-post.dto";
 import { PostsService } from "./posts.service";
 
 interface AuthenticatedUser {
@@ -143,6 +143,23 @@ export class PostsController {
 	@Get("slug/public/:slug")
 	async getPublishedPostBySlug(@Param("slug") slug: string) {
 		return this.postsService.getPublishedPostBySlug(slug);
+	}
+
+	@Public()
+	@Get("search")
+	async searchPosts(
+		@Query("q") query: string,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "10",
+	) {
+		if (!query || query.trim().length === 0) {
+			return { posts: [], total: 0, page: 1, limit: 10, totalPages: 0 };
+		}
+		return this.postsService.searchPosts(
+			query.trim(),
+			Number(page),
+			Number(limit),
+		);
 	}
 
 	@Public()
