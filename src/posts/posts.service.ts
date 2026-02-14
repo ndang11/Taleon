@@ -108,7 +108,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		console.log(
 			"[DEBUG publish] finalContent:",
 			this.safeContentPreview(
-				finalContent as Parameters<typeof this.safeContentPreview>[0],
+				finalContent as string | Record<string, unknown> | null | undefined,
 			),
 		);
 
