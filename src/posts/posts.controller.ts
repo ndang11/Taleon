@@ -15,8 +15,8 @@ import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import type { AutosavePostDto } from "./dto/autosave-post.dto";
-import { type CreatePostDto } from "./dto/create-post.dto";
-import { type UpdateDraftDto } from "./dto/update-post.dto";
+import type { CreatePostDto } from "./dto/create-post.dto";
+import type { UpdateDraftDto } from "./dto/update-post.dto";
 import { PostsService } from "./posts.service";
 
 interface AuthenticatedUser {
