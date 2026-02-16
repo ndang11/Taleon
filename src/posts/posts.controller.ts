@@ -146,6 +146,23 @@ export class PostsController {
 	}
 
 	@Public()
+	@Get("search")
+	async searchPosts(
+		@Query("q") query: string,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "10",
+	) {
+		if (!query || query.trim().length === 0) {
+			return { posts: [], total: 0, page: 1, limit: 10, totalPages: 0 };
+		}
+		return this.postsService.searchPosts(
+			query.trim(),
+			Number(page),
+			Number(limit),
+		);
+	}
+
+	@Public()
 	@Get(":id")
 	async getPostById(@Param("id") id: string) {
 		return this.postsService.getPostById(id);

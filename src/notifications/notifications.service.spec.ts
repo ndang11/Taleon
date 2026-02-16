@@ -23,7 +23,6 @@ describe("NotificationsService", () => {
 			}),
 		}));
 
-		// Create a chainable mock for find()
 		const createFindMock = () => {
 			const mockChain = {
 				sort: jest.fn().mockReturnThis(),
