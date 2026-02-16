@@ -571,9 +571,17 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new NotFoundException("Post not found");
 		}
 
+		// Ensure title and content have fallbacks if somehow missing
+		const title = post.title || "Untitled Story";
+		const content = post.content || "";
+		const coverImage = post.coverImage || null;
+
 		return {
 			...(post.toObject() as unknown as Post),
-			image: post.coverImage,
+			title,
+			content,
+			coverImage,
+			image: coverImage,
 		};
 	}
 
@@ -594,9 +602,17 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new Error("Post not found");
 		}
 
+		// Ensure title and content have fallbacks if somehow missing
+		const title = post.title || "Untitled Story";
+		const content = post.content || "";
+		const coverImage = post.coverImage || null;
+
 		return {
 			...(post.toObject() as unknown as Post),
-			image: post.coverImage,
+			title,
+			content,
+			coverImage,
+			image: coverImage,
 		};
 	}
 
