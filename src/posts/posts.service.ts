@@ -297,12 +297,22 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		const fullSlug = `${baseSlug}-${shortId}`;
 
 		// Handle content: convert object to JSON string if needed
-		const contentString =
-			typeof dto.content === "string"
-				? dto.content
-				: typeof dto.content === "object" && dto.content !== null
-					? JSON.stringify(dto.content)
-					: JSON.stringify(dto.contentObject || { blocks: [] });
+		// For TipTap compatibility, use proper empty document structure
+		let contentString: string;
+		if (dto.content !== undefined && dto.content !== null) {
+			// If content is already a string (HTML or JSON string), use it as-is
+			contentString =
+				typeof dto.content === "string"
+					? dto.content
+					: JSON.stringify(dto.content);
+		} else if (dto.contentObject) {
+			// Legacy blocks format
+			contentString = JSON.stringify(dto.contentObject);
+		} else {
+			// Default empty content - use TipTap empty doc format
+			// This ensures compatibility with both TipTap editor and legacy components
+			contentString = JSON.stringify({ type: "doc", content: [] });
+		}
 
 		const newPost = new this.postModel({
 			title: dto.title || "Untitled Story",
