@@ -658,6 +658,48 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		};
 	}
 
+	/**
+	 * Search published posts by query string
+	 */
+	async searchPosts(query: string, page: number = 1, limit: number = 10) {
+		const skip = (page - 1) * limit;
+
+		// Create search filter for title and content
+		const searchFilter = {
+			status: "published",
+			$or: [
+				{ title: { $regex: query, $options: "i" } },
+				{ content: { $regex: query, $options: "i" } },
+				{ subtitle: { $regex: query, $options: "i" } },
+				{ tags: { $in: [new RegExp(query, "i")] } },
+			],
+		};
+
+		const posts = await this.postModel
+			.find(searchFilter)
+			.populate("authorId", "name email avatar")
+			.sort({ publishedAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.exec();
+
+		// Add image alias for frontend compatibility
+		const postsWithImage = posts.map((post) => ({
+			...(post.toObject() as unknown as Post),
+			image: post.coverImage,
+		}));
+
+		const total = await this.postModel.countDocuments(searchFilter).exec();
+
+		return {
+			posts: postsWithImage,
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
+		};
+	}
+
 	async incrementView(postIdOrSlug: string): Promise<PostDocument> {
 		// Check if it's a valid ObjectId, otherwise treat as slug
 		const isValidObjectId = Types.ObjectId.isValid(postIdOrSlug);
