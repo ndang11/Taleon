@@ -619,7 +619,11 @@ export class PostsService extends TenantBaseService<PostDocument> {
 	/**
 	 * Search published posts by query string
 	 */
-	async searchPosts(query: string, page: number = 1, limit: number = 10) {
+	async searchPostsByQuery(
+		query: string,
+		page: number = 1,
+		limit: number = 10,
+	) {
 		const skip = (page - 1) * limit;
 
 		// Create search filter for title and content
