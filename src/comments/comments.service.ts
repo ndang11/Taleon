@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { type Model, Types } from "mongoose";
 import { Comment, type IComment } from "../models/comment.model";
@@ -22,8 +26,14 @@ export class CommentsService {
 			tenantId,
 		});
 
+		// Validate input - ensure content exists and is not just whitespace
+		const trimmedContent = createCommentDto.content?.trim();
+		if (!trimmedContent || trimmedContent.length === 0) {
+			throw new BadRequestException("Comment content cannot be empty");
+		}
+
 		const comment = new this.commentModel({
-			...createCommentDto,
+			content: trimmedContent,
 			postId: new Types.ObjectId(createCommentDto.postId),
 			userId: new Types.ObjectId(userId),
 			tenantId,
