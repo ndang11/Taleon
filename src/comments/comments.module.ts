@@ -10,7 +10,7 @@ import { CommentsService } from "./comments.service";
 	imports: [
 		MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
 		NotificationsModule,
-		forwardRef(() => PostsModule),
+		PostsModule,
 	],
 	controllers: [CommentsController],
 	providers: [CommentsService],
