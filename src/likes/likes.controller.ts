@@ -4,9 +4,9 @@ import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import { NotificationType } from "../notifications/notifications.schema";
-import { NotificationsService } from "../notifications/notifications.service";
-import { PostsService } from "../posts/posts.service";
-import { LikesService } from "./likes.service";
+import type { NotificationsService } from "../notifications/notifications.service";
+import type { PostsService } from "../posts/posts.service";
+import type { LikesService } from "./likes.service";
 
 interface PopulatedAuthor {
 	_id: { toString(): string };
