@@ -17,6 +17,7 @@ export class Post {
 	@Prop({
 		unique: true,
 		index: true,
+		sparse: true,
 		default: () => new Types.ObjectId().toString(),
 	})
 	slug!: string;
