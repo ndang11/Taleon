@@ -34,9 +34,6 @@ export class LikesController {
 
 		if (result.liked) {
 			try {
-				// Create notification for the post author
-				// Note: We don't have access to PostsService here due to module circular dependency
-				// Creating a simple notification without author details
 				await this.notificationsService.create({
 					userId: postId, // Use postId as a placeholder - in production you'd get the author
 					fromUserId: user.userId,
