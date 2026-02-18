@@ -1,9 +1,8 @@
-import { forwardRef, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Schema } from "mongoose";
 import { MultiTenantModule } from "../multi-tenant/multi-tenant.module";
 import { NotificationsModule } from "../notifications/notifications.module";
-import { PostsModule } from "../posts/posts.module";
 import { LikesController } from "./likes.controller";
 import { LikesService } from "./likes.service";
 
@@ -38,8 +37,7 @@ FixedLikeSchema.index({ postId: 1, userId: 1 }, { unique: true });
 @Module({
 	imports: [
 		MongooseModule.forFeature([{ name: "Like", schema: FixedLikeSchema }]),
-		forwardRef(() => MultiTenantModule),
-		forwardRef(() => PostsModule),
+		MultiTenantModule,
 		NotificationsModule,
 	],
 	controllers: [LikesController],
