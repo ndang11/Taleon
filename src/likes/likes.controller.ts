@@ -3,9 +3,17 @@ import { AuthGuard } from "@nestjs/passport";
 import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
+import { NotificationType } from "../notifications/notifications.schema";
 import type { NotificationsService } from "../notifications/notifications.service";
 import type { PostsService } from "../posts/posts.service";
 import type { LikesService } from "./likes.service";
+
+interface PopulatedAuthor {
+	_id: { toString(): string };
+	name?: string;
+	email?: string;
+	avatar?: string;
+}
 
 interface AuthenticatedUser {
 	userId: string;
@@ -36,13 +44,14 @@ export class LikesController {
 		if (result.liked) {
 			try {
 				const post = await this.postsService.getPostById(postId);
-				const authorId = post?.authorId as { _id: string } | undefined;
-				if (authorId && authorId._id !== user.userId) {
+				const author = post.authorId as unknown as PopulatedAuthor | null;
+				const authorId = author?._id?.toString();
+				if (authorId && authorId !== user.userId) {
 					await this.notificationsService.create({
-						userId: authorId._id,
+						userId: authorId,
 						fromUserId: user.userId,
-						type: "like",
-						postId: postId,
+						type: NotificationType.LIKE,
+						postId,
 						message: "Someone liked your post",
 						link: `/post/${postId}`,
 					});

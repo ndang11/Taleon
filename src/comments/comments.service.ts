@@ -4,7 +4,7 @@ import {
 	NotFoundException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import type { Model } from "mongoose";
+import { type Model, Types } from "mongoose";
 import { Comment, type IComment } from "../models/comment.model";
 
 interface CreateCommentDto {
