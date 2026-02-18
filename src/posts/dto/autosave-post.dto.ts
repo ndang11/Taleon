@@ -8,4 +8,12 @@ export class AutosavePostDto {
 	@IsOptional()
 	@IsString()
 	title?: string;
+
+	@IsOptional()
+	@IsString()
+	image?: string;
+
+	@IsOptional()
+	@IsString()
+	coverImage?: string;
 }
