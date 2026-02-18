@@ -9,9 +9,9 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import type { NotificationsService } from "../notifications/notifications.service";
-import type { PostsService } from "../posts/posts.service";
-import type { CommentsService } from "./comments.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { PostsService } from "../posts/posts.service";
+import { CommentsService } from "./comments.service";
 import type { CreateCommentDto } from "./dto/create-comment.dto";
 
 interface CustomRequest extends Request {
