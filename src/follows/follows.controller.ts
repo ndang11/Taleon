@@ -8,7 +8,8 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
-import { FollowsService } from "./follows.service";
+import type { NotificationsService } from "../notifications/notifications.service";
+import type { FollowsService } from "./follows.service";
 
 interface CustomRequest extends Request {
 	user: { userId: string; tenantId: string };
@@ -18,11 +19,33 @@ interface CustomRequest extends Request {
 @Controller("follows")
 @UseGuards(TenantGuard)
 export class FollowsController {
-	constructor(private followsService: FollowsService) {}
+	constructor(
+		private followsService: FollowsService,
+		private notificationsService: NotificationsService,
+	) {}
 
 	@Post(":userId")
 	async follow(@Param("userId") userId: string, @Request() req: CustomRequest) {
-		return this.followsService.follow(req.user.userId, userId, req.tenantId);
+		const result = await this.followsService.follow(
+			req.user.userId,
+			userId,
+			req.user.tenantId,
+		);
+
+		// Create notification for the followed user
+		try {
+			await this.notificationsService.create({
+				userId: userId,
+				fromUserId: req.user.userId,
+				type: "follow" as any,
+				message: "Someone followed you",
+				link: `/profile/${req.user.userId}`,
+			});
+		} catch (e) {
+			console.error("Failed to create follow notification:", e);
+		}
+
+		return result;
 	}
 
 	@Delete(":userId")
@@ -48,6 +71,10 @@ export class FollowsController {
 		@Param("userId") userId: string,
 		@Request() req: CustomRequest,
 	) {
-		return this.followsService.isFollowing(req.user.userId, userId);
+		const isFollowing = await this.followsService.isFollowing(
+			req.user.userId,
+			userId,
+		);
+		return { isFollowing };
 	}
 }

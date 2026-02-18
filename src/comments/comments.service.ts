@@ -6,7 +6,6 @@ import {
 import { InjectModel } from "@nestjs/mongoose";
 import { type Model, Types } from "mongoose";
 import { Comment, type IComment } from "../models/comment.model";
-import type { CreateCommentDto } from "./dto/create-comment.dto";
 
 @Injectable()
 export class CommentsService {
@@ -15,7 +14,7 @@ export class CommentsService {
 	) {}
 
 	async create(
-		createCommentDto: CreateCommentDto,
+		createCommentDto: any,
 		userId: string,
 		tenantId: string,
 	): Promise<IComment> {
