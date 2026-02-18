@@ -5,14 +5,14 @@ import { type Model, Types } from "mongoose";
 import { Follow, type FollowDocument } from "../schemas/follow.schema";
 import { User, type UserDocument } from "../schemas/users.schema";
 
-interface UserSummary {
+export interface UserSummary {
 	_id: Types.ObjectId;
 	name: string;
 	email: string;
 	avatar: string;
 }
 
-interface UserProfile {
+export interface UserProfile {
 	_id: Types.ObjectId;
 	name: string;
 	email: string;
@@ -29,9 +29,6 @@ interface UserProfile {
 	following: UserSummary[];
 }
 
-/**
- * Service for managing user operations.
- */
 @Injectable()
 export class UsersService {
 	constructor(
@@ -89,7 +86,6 @@ export class UsersService {
 		const user = await this.userModel.findById(id).exec();
 		if (!user) throw new NotFoundException("User not found");
 
-		// Get followers and following
 		const followers = await this.followModel
 			.find({ followingId: new Types.ObjectId(id) })
 			.populate("followerId", "name email avatar")
@@ -114,18 +110,24 @@ export class UsersService {
 			tenantId: user.tenantId,
 			followersCount: user.followersCount || 0,
 			followingCount: user.followingCount || 0,
-			followers: followers.map((f: FollowDocument) => ({
-				_id: f.followerId?._id,
-				name: f.followerId?.name,
-				email: f.followerId?.email,
-				avatar: f.followerId?.avatar,
-			})),
-			following: following.map((f: FollowDocument) => ({
-				_id: f.followingId?._id,
-				name: f.followingId?.name,
-				email: f.followingId?.email,
-				avatar: f.followingId?.avatar,
-			})),
+			followers: followers.map((f) => {
+				const follower = f.followerId as unknown as UserSummary | null;
+				return {
+					_id: follower?._id ?? new Types.ObjectId(),
+					name: follower?.name ?? "",
+					email: follower?.email ?? "",
+					avatar: follower?.avatar ?? "",
+				};
+			}),
+			following: following.map((f) => {
+				const followingUser = f.followingId as unknown as UserSummary | null;
+				return {
+					_id: followingUser?._id ?? new Types.ObjectId(),
+					name: followingUser?.name ?? "",
+					email: followingUser?.email ?? "",
+					avatar: followingUser?.avatar ?? "",
+				};
+			}),
 		};
 	}
 
