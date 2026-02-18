@@ -34,7 +34,10 @@ export class NotificationsController {
 			req.user.userId,
 			limit || 20,
 		);
-		return { notifications };
+		const unreadCount = await this.notificationsService.getUnreadCount(
+			req.user.userId,
+		);
+		return { notifications, unreadCount };
 	}
 
 	@Get("unread")
