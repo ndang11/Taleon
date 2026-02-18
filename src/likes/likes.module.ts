@@ -7,7 +7,6 @@ import { PostsModule } from "../posts/posts.module";
 import { LikesController } from "./likes.controller";
 import { LikesService } from "./likes.service";
 
-// Create a new schema that explicitly has content as optional
 const FixedLikeSchema = new Schema(
 	{
 		postId: {
