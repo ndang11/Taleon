@@ -8,8 +8,8 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { TenantGuard } from "../multi-tenant/tenant.guard";
-import type { NotificationsService } from "../notifications/notifications.service";
-import type { FollowsService } from "./follows.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { FollowsService } from "./follows.service";
 
 interface CustomRequest extends Request {
 	user: { userId: string; tenantId: string };
