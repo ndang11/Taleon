@@ -7,7 +7,6 @@ import type { NotificationsService } from "../notifications/notifications.servic
 import type { PostsService } from "../posts/posts.service";
 import type { LikesService } from "./likes.service";
 
-// Type alias for the authenticated user
 interface AuthenticatedUser {
 	userId: string;
 	email: string;
@@ -34,7 +33,6 @@ export class LikesController {
 			user.tenantId,
 		);
 
-		// Create notification only when a like is added (not removed)
 		if (result.liked) {
 			try {
 				const post = await this.postsService.getPostById(postId);
