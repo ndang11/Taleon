@@ -2,7 +2,32 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import * as bcrypt from "bcrypt";
 import { type Model, Types } from "mongoose";
+import { Follow, type FollowDocument } from "../schemas/follow.schema";
 import { User, type UserDocument } from "../schemas/users.schema";
+
+interface UserSummary {
+	_id: Types.ObjectId;
+	name: string;
+	email: string;
+	avatar: string;
+}
+
+interface UserProfile {
+	_id: Types.ObjectId;
+	name: string;
+	email: string;
+	avatar: string;
+	coverImage: string;
+	bio: string;
+	location: string;
+	website: string;
+	phone: string;
+	tenantId: Types.ObjectId;
+	followersCount: number;
+	followingCount: number;
+	followers: UserSummary[];
+	following: UserSummary[];
+}
 
 /**
  * Service for managing user operations.
@@ -10,7 +35,10 @@ import { User, type UserDocument } from "../schemas/users.schema";
 @Injectable()
 export class UsersService {
 	constructor(
-		@InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+		@InjectModel(User.name)
+		private readonly userModel: Model<UserDocument>,
+		@InjectModel(Follow.name)
+		private readonly followModel: Model<FollowDocument>,
 	) {}
 
 	/**
@@ -54,13 +82,51 @@ export class UsersService {
 	/**
 	 * Retrieves a user by ID.
 	 * @param id The user ID.
-	 * @returns The user document.
+	 * @returns The user document with followers and following data.
 	 * @throws NotFoundException if the user is not found.
 	 */
-	async findOne(id: string): Promise<UserDocument> {
+	async findOne(id: string): Promise<UserProfile> {
 		const user = await this.userModel.findById(id).exec();
 		if (!user) throw new NotFoundException("User not found");
-		return user;
+
+		// Get followers and following
+		const followers = await this.followModel
+			.find({ followingId: new Types.ObjectId(id) })
+			.populate("followerId", "name email avatar")
+			.exec();
+
+		const following = await this.followModel
+			.find({ followerId: new Types.ObjectId(id) })
+			.populate("followingId", "name email avatar")
+			.exec();
+
+		// Transform to match frontend interface
+		return {
+			_id: user._id,
+			name: user.name,
+			email: user.email,
+			avatar: user.avatar,
+			coverImage: user.coverImage,
+			bio: user.bio,
+			location: user.location,
+			website: user.website,
+			phone: user.phone,
+			tenantId: user.tenantId,
+			followersCount: user.followersCount || 0,
+			followingCount: user.followingCount || 0,
+			followers: followers.map((f: FollowDocument) => ({
+				_id: f.followerId?._id,
+				name: f.followerId?.name,
+				email: f.followerId?.email,
+				avatar: f.followerId?.avatar,
+			})),
+			following: following.map((f: FollowDocument) => ({
+				_id: f.followingId?._id,
+				name: f.followingId?.name,
+				email: f.followingId?.email,
+				avatar: f.followingId?.avatar,
+			})),
+		};
 	}
 
 	/**
