@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Comment, CommentSchema } from "../models/comment.model";
 import { NotificationsModule } from "../notifications/notifications.module";
@@ -10,7 +10,7 @@ import { CommentsService } from "./comments.service";
 	imports: [
 		MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
 		NotificationsModule,
-		PostsModule,
+		forwardRef(() => PostsModule),
 	],
 	controllers: [CommentsController],
 	providers: [CommentsService],
