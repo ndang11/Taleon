@@ -47,7 +47,6 @@ export class CommentsController {
 			req.user.tenantId,
 		);
 
-		// Create notification for the post author
 		try {
 			const post = await this.postsService.getPostById(data.postId);
 			if (post?.authorId && (post.authorId as any)._id !== req.user.userId) {

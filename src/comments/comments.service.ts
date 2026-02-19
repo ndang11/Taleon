@@ -30,7 +30,6 @@ export class CommentsService {
 			tenantId,
 		});
 
-		// Validate input - ensure content exists and is not just whitespace
 		const trimmedContent = createCommentDto.content?.trim();
 		if (!trimmedContent || trimmedContent.length === 0) {
 			throw new BadRequestException("Comment content cannot be empty");
@@ -46,7 +45,6 @@ export class CommentsService {
 
 			return await comment.save();
 		} catch (error) {
-			// Handle duplicate key error
 			if ((error as { code?: number }).code === 11000) {
 				console.error("Duplicate key error:", (error as Error).message);
 				throw new BadRequestException("A comment with this ID already exists");
