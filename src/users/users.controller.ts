@@ -12,7 +12,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import type { UserDocument } from "../schemas/users.schema";
-import type { UsersService } from "./users.service";
+import { UsersService } from "./users.service";
 
 @Controller("users")
 export class UsersController {
