@@ -42,7 +42,7 @@ export class UsersService {
 		@InjectModel(Post.name)
 		private readonly postModel: Model<PostDocument>,
 		@InjectModel(Like.name)
-		private readonly likeModel: Model<Like>,
+		private readonly likeModel: Model<ILike>,
 		@InjectModel(Comment.name)
 		private readonly commentModel: Model<Comment>,
 	) {}
