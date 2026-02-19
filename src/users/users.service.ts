@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import * as bcrypt from "bcrypt";
 import { type Model, Types } from "mongoose";
+import { Comment } from "../models/comment.model";
+import type { Like } from "../models/like.model";
 import { Follow, type FollowDocument } from "../schemas/follow.schema";
+import { Post, type PostDocument } from "../schemas/post.schema";
 import { User, type UserDocument } from "../schemas/users.schema";
 
 export interface UserSummary {
@@ -36,6 +39,12 @@ export class UsersService {
 		private readonly userModel: Model<UserDocument>,
 		@InjectModel(Follow.name)
 		private readonly followModel: Model<FollowDocument>,
+		@InjectModel(Post.name)
+		private readonly postModel: Model<PostDocument>,
+		@InjectModel("Like")
+		private readonly likeModel: Model<typeof Like>,
+		@InjectModel(Comment.name)
+		private readonly commentModel: Model<typeof Comment>,
 	) {}
 
 	/**
@@ -180,5 +189,57 @@ export class UsersService {
 			.exec();
 		if (!user) throw new NotFoundException("User not found");
 		return user;
+	}
+
+	/**
+	 * Gets analytics data for a user.
+	 * @param userId The user ID.
+	 * @returns Analytics data including posts, views, likes, comments, followers, and following counts.
+	 */
+	async getAnalytics(userId: string) {
+		const userObjectId = new Types.ObjectId(userId);
+
+		// Get all posts by the user
+		const userPosts = await this.postModel
+			.find({ authorId: userObjectId })
+			.exec();
+
+		const totalPosts = userPosts.length;
+		const postIds = userPosts.map((post) => post._id);
+
+		// Get total views across all posts
+		const totalViews = userPosts.reduce(
+			(sum, post) => sum + (post.viewCount || 0),
+			0,
+		);
+
+		// Get total likes for user's posts
+		const totalLikes = await this.likeModel.countDocuments({
+			postId: { $in: postIds },
+		});
+
+		// Get total comments for user's posts
+		const totalComments = await this.commentModel.countDocuments({
+			postId: { $in: postIds },
+		});
+
+		// Get followers count
+		const followersCount = await this.followModel.countDocuments({
+			followingId: userObjectId,
+		});
+
+		// Get following count
+		const followingCount = await this.followModel.countDocuments({
+			followerId: userObjectId,
+		});
+
+		return {
+			totalPosts,
+			totalViews,
+			totalLikes,
+			totalComments,
+			followersCount,
+			followingCount,
+		};
 	}
 }
