@@ -3,7 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import * as bcrypt from "bcrypt";
 import { type Model, Types } from "mongoose";
 import { Comment } from "../models/comment.model";
-import { Like } from "../models/like.model";
+import { type ILike, Like } from "../models/like.model";
 import { Follow, type FollowDocument } from "../schemas/follow.schema";
 import { Post, type PostDocument } from "../schemas/post.schema";
 import { User, type UserDocument } from "../schemas/users.schema";
