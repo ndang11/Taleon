@@ -231,7 +231,10 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			"[DEBUG updateDraft] data.content preview:",
 			this.safeContentPreview(data.content),
 		);
-		console.log("[DEBUG updateDraft] data.image:", data.image ? "provided" : "not provided");
+		console.log(
+			"[DEBUG updateDraft] data.image:",
+			data.image ? "provided" : "not provided",
+		);
 
 		const updatePayload: UpdateDraftData = { ...data };
 
@@ -337,18 +340,37 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			.limit(limit)
 			.exec();
 
-		// Add image alias for frontend compatibility
-		const postsWithImage = posts.map((post) => ({
-			...(post.toObject() as unknown as Post),
-			image: post.coverImage,
-		}));
+		// Add image alias for frontend compatibility and fetch like/comment counts
+		const postsWithCounts = await Promise.all(
+			posts.map(async (post) => {
+				const postObj = post.toObject() as unknown as Post;
+				const postId = post._id.toString();
+
+				// Get like count (no tenantId needed for public posts)
+				const likeCount = await this.likesService.getLikeCount(postId);
+
+				// Get comment count - use a default tenantId or try without tenantId
+				// For public posts, we'll try to get counts without tenantId restriction
+				const commentCount = await this.commentsService.getCommentCount(
+					postId,
+					"",
+				);
+
+				return {
+					...postObj,
+					image: post.coverImage,
+					likeCount,
+					commentCount,
+				};
+			}),
+		);
 
 		const total = await this.postModel
 			.countDocuments({ status: "published" })
 			.exec();
 
 		return {
-			posts: postsWithImage,
+			posts: postsWithCounts,
 			total,
 			page,
 			limit,
