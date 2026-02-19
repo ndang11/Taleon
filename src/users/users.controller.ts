@@ -6,11 +6,13 @@ import {
 	Param,
 	Post,
 	Put,
+	UseGuards,
 } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import type { UserDocument } from "../schemas/users.schema";
-import { UsersService } from "./users.service";
+import type { UsersService } from "./users.service";
 
 @Controller("users")
 export class UsersController {
@@ -25,6 +27,12 @@ export class UsersController {
 	@Get("me")
 	getMe(@CurrentUser() user: UserDocument) {
 		return user;
+	}
+
+	@UseGuards(AuthGuard("jwt"))
+	@Get("me/analytics")
+	getMyAnalytics(@CurrentUser() user: UserDocument) {
+		return this.usersService.getAnalytics(user._id.toString());
 	}
 
 	@Get(":id")
