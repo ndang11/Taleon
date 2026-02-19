@@ -9,9 +9,12 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { CurrentUser } from "../common/decorators/current-user.decorator";
+import {
+	CurrentUser,
+	type JwtUserPayload,
+} from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
-import type { UserDocument } from "../schemas/users.schema";
+// biome-ignore lint/style/useImportType: Needed for NestJS DI
 import { UsersService } from "./users.service";
 
 @Controller("users")
@@ -25,14 +28,18 @@ export class UsersController {
 	}
 
 	@Get("me")
-	getMe(@CurrentUser() user: UserDocument) {
+	getMe(@CurrentUser() user: JwtUserPayload) {
 		return user;
 	}
 
 	@UseGuards(AuthGuard("jwt"))
 	@Get("me/analytics")
-	getMyAnalytics(@CurrentUser() user: UserDocument) {
-		return this.usersService.getAnalytics(user._id.toString());
+	async getMyAnalytics(@CurrentUser() user: JwtUserPayload) {
+		if (!user?.userId) {
+			throw new Error("User ID not found in request. Check JWT strategy.");
+		}
+
+		return this.usersService.getAnalytics(user.userId);
 	}
 
 	@Get(":id")
