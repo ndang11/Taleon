@@ -12,7 +12,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PostsService } from "../posts/posts.service";
 import { CommentsService } from "./comments.service";
-import type { CreateCommentDto } from "./dto/create-comment.dto";
+import { CreateCommentDto } from "./dto/create-comment.dto";
 
 interface CustomRequest extends Request {
 	user: { userId: string; tenantId: string };
@@ -33,7 +33,6 @@ export class CommentsController {
 		@Body() createCommentDto: CreateCommentDto,
 		@Request() req: CustomRequest,
 	) {
-		// Use raw body if DTO is empty due to ValidationPipe issues
 		const data =
 			createCommentDto && Object.keys(createCommentDto).length > 0
 				? createCommentDto
@@ -48,7 +47,6 @@ export class CommentsController {
 			req.user.tenantId,
 		);
 
-		// Create notification for the post author
 		try {
 			const post = await this.postsService.getPostById(data.postId);
 			if (post?.authorId && (post.authorId as any)._id !== req.user.userId) {
