@@ -8,10 +8,14 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 
 async function bootstrap() {
+	console.log('MONGO_URI:', process.env.MONGO_URI);
 	const app = await NestFactory.create(AppModule);
 
 	app.enableCors({
-		origin: "https://frontend-taleon.onrender.com",
+		origin: [
+			"https://frontend-taleon.onrender.com",
+			"http://localhost:3000",
+		],
 		methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
 		credentials: true,
 		allowedHeaders: "Content-Type, Authorization, X-Requested-With",

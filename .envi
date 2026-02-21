@@ -1,0 +1,13 @@
+MONGO_URI=mongodb+srv://royaltyhopsin_db_user:E1wf32QDO1O2NJoa@taleondb.utuwcxv.mongodb.net/taleon?retryWrites=true&w=majority&family=4
+PORT=4000
+JWT_SECRET=ajkheijewoojsabeuhwoijwsau
+JWT_EXPIRES_IN=7d
+NODE_ENV=production
+
+# ImageKit Configuration
+IMAGEKIT_PUBLIC_KEY=public_IcEhNBznTVFLAxBcqsAMFQ7hdMY=
+IMAGEKIT_PRIVATE_KEY=yprivate_aVE9mRa8NTDLrQpzcEd/wcttN2E=
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_imagekit_id
+
+# E1wf32QDO1O2NJoa
+# royaltyhopsin_db_user
