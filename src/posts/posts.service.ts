@@ -224,17 +224,19 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			throw new BadRequestException("No data provided for update");
 		}
 
+		console.log("[DEBUG updateDraft] received data keys:", Object.keys(data));
+		console.log("[DEBUG updateDraft] data.title:", data.title);
+		console.log("[DEBUG updateDraft] data.content type:", typeof data.content);
+		console.log(
+			"[DEBUG updateDraft] data.content preview:",
+			this.safeContentPreview(data.content),
+		);
+		console.log(
+			"[DEBUG updateDraft] data.image:",
+			data.image ? "provided" : "not provided",
+		);
+
 		const updatePayload: UpdateDraftData = { ...data };
-
-		// Safe stringify with null check - always returns a string
-		const getDebugString = (obj: unknown): string => {
-			if (obj === null || obj === undefined) {
-				return "undefined";
-			}
-			return String(obj).substring(0, 200);
-		};
-
-		console.log("[DEBUG updateDraft] received data:", getDebugString(data));
 
 		if (data.content) {
 			const contentString =
@@ -338,18 +340,37 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			.limit(limit)
 			.exec();
 
-		// Add image alias for frontend compatibility
-		const postsWithImage = posts.map((post) => ({
-			...(post.toObject() as unknown as Post),
-			image: post.coverImage,
-		}));
+		// Add image alias for frontend compatibility and fetch like/comment counts
+		const postsWithCounts = await Promise.all(
+			posts.map(async (post) => {
+				const postObj = post.toObject() as unknown as Post;
+				const postId = post._id.toString();
+
+				// Get like count (no tenantId needed for public posts)
+				const likeCount = await this.likesService.getLikeCount(postId);
+
+				// Get comment count - use a default tenantId or try without tenantId
+				// For public posts, we'll try to get counts without tenantId restriction
+				const commentCount = await this.commentsService.getCommentCount(
+					postId,
+					"",
+				);
+
+				return {
+					...postObj,
+					image: post.coverImage,
+					likeCount,
+					commentCount,
+				};
+			}),
+		);
 
 		const total = await this.postModel
 			.countDocuments({ status: "published" })
 			.exec();
 
 		return {
-			posts: postsWithImage,
+			posts: postsWithCounts,
 			total,
 			page,
 			limit,

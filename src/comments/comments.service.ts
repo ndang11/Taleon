@@ -4,9 +4,13 @@ import {
 	NotFoundException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { type Model, Types } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Comment, type IComment } from "../models/comment.model";
-import type { CreateCommentDto } from "./dto/create-comment.dto";
+
+interface CreateCommentDto {
+	content?: string;
+	postId?: string;
+}
 
 @Injectable()
 export class CommentsService {
@@ -26,20 +30,27 @@ export class CommentsService {
 			tenantId,
 		});
 
-		// Validate input - ensure content exists and is not just whitespace
 		const trimmedContent = createCommentDto.content?.trim();
 		if (!trimmedContent || trimmedContent.length === 0) {
 			throw new BadRequestException("Comment content cannot be empty");
 		}
 
-		const comment = new this.commentModel({
-			content: trimmedContent,
-			postId: new Types.ObjectId(createCommentDto.postId),
-			userId: new Types.ObjectId(userId),
-			tenantId,
-		});
+		try {
+			const comment = new this.commentModel({
+				content: trimmedContent,
+				postId: new Types.ObjectId(createCommentDto.postId),
+				userId: new Types.ObjectId(userId),
+				tenantId,
+			});
 
-		return comment.save();
+			return await comment.save();
+		} catch (error) {
+			if ((error as { code?: number }).code === 11000) {
+				console.error("Duplicate key error:", (error as Error).message);
+				throw new BadRequestException("A comment with this ID already exists");
+			}
+			throw error;
+		}
 	}
 
 	async findByPost(postId: string, tenantId: string): Promise<IComment[]> {

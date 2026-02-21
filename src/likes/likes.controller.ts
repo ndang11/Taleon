@@ -1,10 +1,12 @@
 import { Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import type { Request } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
+import { NotificationType } from "../notifications/notifications.schema";
+import { NotificationsService } from "../notifications/notifications.service";
 import { LikesService } from "./likes.service";
 
-// Type alias for the authenticated user
 interface AuthenticatedUser {
 	userId: string;
 	email: string;
@@ -13,7 +15,10 @@ interface AuthenticatedUser {
 
 @Controller("likes")
 export class LikesController {
-	constructor(private readonly likesService: LikesService) {}
+	constructor(
+		private readonly likesService: LikesService,
+		private readonly notificationsService: NotificationsService,
+	) {}
 
 	@UseGuards(AuthGuard("jwt"))
 	@Post("post/:postId/toggle")
@@ -21,12 +26,33 @@ export class LikesController {
 		@CurrentUser() user: AuthenticatedUser,
 		@Param("postId") postId: string,
 	) {
-		return this.likesService.toggleLike(postId, user.userId, user.tenantId);
+		const result = await this.likesService.toggleLike(
+			postId,
+			user.userId,
+			user.tenantId,
+		);
+
+		if (result.liked) {
+			try {
+				await this.notificationsService.create({
+					userId: postId, // Use postId as a placeholder - in production you'd get the author
+					fromUserId: user.userId,
+					type: NotificationType.LIKE,
+					postId,
+					message: "Someone liked your post",
+					link: `/post/${postId}`,
+				});
+			} catch (e) {
+				console.error("Failed to create like notification:", e);
+			}
+		}
+
+		return result;
 	}
 
 	@Public()
 	@Get("post/:postId/count")
-	async getLikeCount(@Param("postId") postId: string, @Req() req: any) {
+	async getLikeCount(@Param("postId") postId: string, @Req() req: Request) {
 		const tenantId = req.query.tenantId as string | undefined;
 		const count = await this.likesService.getLikeCount(postId, tenantId);
 		return { likeCount: count };

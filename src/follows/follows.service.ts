@@ -6,12 +6,29 @@ import {
 import { InjectModel } from "@nestjs/mongoose";
 import { type Model, Types } from "mongoose";
 import { Follow, type FollowDocument } from "../schemas/follow.schema";
+import { User, type UserDocument } from "../schemas/users.schema";
 
 @Injectable()
 export class FollowsService {
 	constructor(
 		@InjectModel(Follow.name) private followModel: Model<FollowDocument>,
+		@InjectModel(User.name) private userModel: Model<UserDocument>,
 	) {}
+
+	private async updateUserFollowCounts(userId: string): Promise<void> {
+		const followersCount = await this.getFollowersCount(userId);
+		const followingCount = await this.getFollowingCount(userId);
+
+		await this.userModel.updateOne(
+			{ _id: new Types.ObjectId(userId) },
+			{
+				$set: {
+					followersCount,
+					followingCount,
+				},
+			},
+		);
+	}
 
 	async follow(
 		followerId: string,
@@ -42,6 +59,10 @@ export class FollowsService {
 
 		await follow.save();
 
+		// Update follower and following user counts
+		await this.updateUserFollowCounts(followerId); // Update the follower's followingCount
+		await this.updateUserFollowCounts(followingId); // Update the following user's followersCount
+
 		// Get updated followers count
 		const followersCount = await this.getFollowersCount(followingId);
 
@@ -60,6 +81,10 @@ export class FollowsService {
 		if (result.deletedCount === 0) {
 			throw new NotFoundException("You are not following this user");
 		}
+
+		// Update follower and following user counts
+		await this.updateUserFollowCounts(followerId); // Update the follower's followingCount
+		await this.updateUserFollowCounts(followingId); // Update the following user's followersCount
 
 		// Get updated followers count
 		const followersCount = await this.getFollowersCount(followingId);

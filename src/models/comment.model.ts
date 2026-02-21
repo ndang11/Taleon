@@ -14,7 +14,7 @@ export const commentSchema = new Schema<IComment>(
 		userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
 		tenantId: { type: String, required: true, index: true },
 	},
-	{ timestamps: true },
+	{ timestamps: true, collection: "comments" },
 );
 
 export const Comment = model<IComment>("Comment", commentSchema);

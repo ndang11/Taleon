@@ -1,11 +1,19 @@
-import { IsDefined, IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class AutosavePostDto {
 	@IsOptional()
-	@IsDefined()
-	content?: string | Record<string, unknown>;
+	@IsString()
+	content?: string;
 
 	@IsOptional()
 	@IsString()
 	title?: string;
+
+	@IsOptional()
+	@IsString()
+	image?: string;
+
+	@IsOptional()
+	@IsString()
+	coverImage?: string;
 }

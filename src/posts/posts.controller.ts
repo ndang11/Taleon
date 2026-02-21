@@ -17,6 +17,7 @@ import { Public } from "../common/decorators/public.decorator";
 import type { AutosavePostDto } from "./dto/autosave-post.dto";
 import type { CreatePostDto } from "./dto/create-post.dto";
 import type { UpdateDraftDto } from "./dto/update-post.dto";
+// biome-ignore lint/style/useImportType: PostsService needs a regular import for NestJS DI
 import { PostsService } from "./posts.service";
 
 interface AuthenticatedUser {
@@ -44,8 +45,21 @@ export class PostsController {
 		@CurrentUser() user: AuthenticatedUser,
 		@Param("id") id: string,
 		@Body() dto: AutosavePostDto,
+		@Req() req: Request,
 	) {
-		return this.postsService.updateDraft(user.tenantId, user.userId, id, dto);
+		console.log(
+			"[autoSave Controller] Raw body:",
+			req.body ? JSON.stringify(req.body).substring(0, 200) : "(undefined)",
+		);
+		console.log("[autoSave Controller] DTO received:", JSON.stringify(dto));
+		console.log("[autoSave Controller] DTO keys:", Object.keys(dto || {}));
+		// Use raw body if DTO is empty due to ValidationPipe issues
+		const data = dto && Object.keys(dto).length > 0 ? dto : req.body;
+		console.log(
+			"[autoSave Controller] Using data:",
+			JSON.stringify(data).substring(0, 200),
+		);
+		return this.postsService.updateDraft(user.tenantId, user.userId, id, data);
 	}
 
 	@UseGuards(AuthGuard("jwt"))
@@ -162,6 +176,26 @@ export class PostsController {
 		);
 	}
 
+	@UseGuards(AuthGuard("jwt"))
+	@Get("tenant-all")
+	async getAllTenantPosts(
+		@Req() req: Request,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "10",
+	) {
+		const user = req.user as AuthenticatedUser;
+
+		if (!user || !user.tenantId) {
+			throw new Error("User not authenticated properly");
+		}
+
+		return this.postsService.getAllTenantPosts(
+			user.tenantId,
+			Number(page),
+			Number(limit),
+		);
+	}
+
 	@Public()
 	@Get(":id")
 	async getPostById(@Param("id") id: string) {
@@ -180,8 +214,15 @@ export class PostsController {
 		@CurrentUser() user: AuthenticatedUser,
 		@Param("id") id: string,
 		@Body() dto: UpdateDraftDto,
+		@Req() req: Request,
 	) {
-		return this.postsService.publish(user.tenantId, user.userId, id, dto);
+		// Use raw body if DTO is empty due to ValidationPipe issues
+		const data = dto && Object.keys(dto).length > 0 ? dto : req.body;
+		console.log(
+			"[publishPost] Using data:",
+			JSON.stringify(data).substring(0, 200),
+		);
+		return this.postsService.publish(user.tenantId, user.userId, id, data);
 	}
 
 	@UseGuards(AuthGuard("jwt"))
