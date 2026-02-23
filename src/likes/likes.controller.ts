@@ -5,6 +5,8 @@ import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
 import { NotificationType } from "../notifications/notifications.schema";
 import { NotificationsService } from "../notifications/notifications.service";
+import { PostsService } from "../posts/posts.service";
+import { UsersService } from "../users/users.service";
 import { LikesService } from "./likes.service";
 
 interface AuthenticatedUser {
@@ -18,6 +20,8 @@ export class LikesController {
 	constructor(
 		private readonly likesService: LikesService,
 		private readonly notificationsService: NotificationsService,
+		private readonly postsService: PostsService,
+		private readonly usersService: UsersService,
 	) {}
 
 	@UseGuards(AuthGuard("jwt"))
@@ -34,14 +38,30 @@ export class LikesController {
 
 		if (result.liked) {
 			try {
-				await this.notificationsService.create({
-					userId: postId, // Use postId as a placeholder - in production you'd get the author
-					fromUserId: user.userId,
-					type: NotificationType.LIKE,
-					postId,
-					message: "Someone liked your post",
-					link: `/post/${postId}`,
-				});
+				// Get the post to find the author
+				const post = await this.postsService.getPostById(postId);
+				const authorId = (post.authorId as any)?._id;
+
+				// Don't notify if user is liking their own post
+				if (authorId && authorId !== user.userId) {
+					// Get the user's name for the notification
+					let userName = "Someone";
+					try {
+						const fromUser = await this.usersService.findOne(user.userId);
+						userName = fromUser?.name || "Someone";
+					} catch (e) {
+						console.error("Failed to get user name:", e);
+					}
+
+					await this.notificationsService.create({
+						userId: authorId,
+						fromUserId: user.userId,
+						type: NotificationType.LIKE,
+						postId,
+						message: "liked your post",
+						link: `/post/${postId}`,
+					});
+				}
 			} catch (e) {
 				console.error("Failed to create like notification:", e);
 			}

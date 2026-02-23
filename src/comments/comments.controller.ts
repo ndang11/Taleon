@@ -11,6 +11,7 @@ import {
 import { AuthGuard } from "@nestjs/passport";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PostsService } from "../posts/posts.service";
+import { UsersService } from "../users/users.service";
 import { CommentsService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 
@@ -25,6 +26,7 @@ export class CommentsController {
 		private commentsService: CommentsService,
 		private notificationsService: NotificationsService,
 		private postsService: PostsService,
+		private usersService: UsersService,
 	) {}
 
 	@UseGuards(AuthGuard("jwt"))
@@ -47,6 +49,8 @@ export class CommentsController {
 			req.user.tenantId,
 		);
 
+		// Get the user's name for the notification (used by frontend display)
+		// The message will be combined with fromUserId.name in the frontend
 		try {
 			const post = await this.postsService.getPostById(data.postId);
 			if (post?.authorId && (post.authorId as any)._id !== req.user.userId) {
@@ -55,7 +59,7 @@ export class CommentsController {
 					fromUserId: req.user.userId,
 					type: "comment" as any,
 					postId: data.postId,
-					message: "Someone commented on your post",
+					message: "commented on your post",
 					link: `/post/${data.postId}`,
 				});
 			}

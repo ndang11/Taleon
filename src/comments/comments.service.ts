@@ -54,9 +54,13 @@ export class CommentsService {
 	}
 
 	async findByPost(postId: string, tenantId: string): Promise<IComment[]> {
+		// If tenantId is provided, filter by it; otherwise fetch all comments for the post
+		const query = tenantId
+			? { postId: new Types.ObjectId(postId), tenantId }
+			: { postId: new Types.ObjectId(postId) };
 		return this.commentModel
-			.find({ postId: new Types.ObjectId(postId), tenantId })
-			.populate("userId", "name")
+			.find(query)
+			.populate("userId", "name avatar")
 			.sort({ createdAt: 1 });
 	}
 
@@ -76,9 +80,10 @@ export class CommentsService {
 	}
 
 	async getCommentCount(postId: string, tenantId: string): Promise<number> {
-		return this.commentModel.countDocuments({
-			postId: new Types.ObjectId(postId),
-			tenantId,
-		});
+		// If tenantId is provided, filter by it; otherwise count all comments for the post
+		const query = tenantId
+			? { postId: new Types.ObjectId(postId), tenantId }
+			: { postId: new Types.ObjectId(postId) };
+		return this.commentModel.countDocuments(query);
 	}
 }
