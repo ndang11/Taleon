@@ -120,13 +120,15 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		let wordCount = 0;
 		if (typeof finalContent === "string" && finalContent.trim()) {
 			// Strip HTML tags and calculate word count
-			const strippedContent = finalContent
+			let strippedContent = finalContent
 				.replace(/<[^>]*>/g, " ")
+				.replace(/&nbsp;/g, " ")
 				.replace(/\s+/g, " ")
 				.trim();
 			wordCount = strippedContent
 				? strippedContent.split(/\s+/).filter((w) => w.length > 0).length
 				: 0;
+			console.log("[DEBUG publish] Stripped content preview:", strippedContent.substring(0, 100));
 		} else if (typeof finalContent === "object" && finalContent !== null) {
 			// Handle TipTap JSON format
 			try {
@@ -138,10 +140,13 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		console.log("[DEBUG publish] wordCount:", wordCount);
+		console.log("[DEBUG publish] finalTitle:", finalTitle ? `"${finalTitle}"` : "(empty)");
 
-		if (!finalTitle || wordCount === 0) {
+		// Check if we have actual content - title must have text and content must have words
+		const hasTitle = finalTitle && finalTitle.trim().length > 0;
+		if (!hasTitle || wordCount === 0) {
 			throw new BadRequestException(
-				"Cannot publish an empty post without a title or content",
+				`Cannot publish: ${!hasTitle ? "Title is required" : "Content is empty"}. Please add ${!hasTitle ? "a title" : "some content"} before publishing.`,
 			);
 		}
 

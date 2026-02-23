@@ -90,6 +90,24 @@ export class PostsController {
 		return this.postsService.getPublishedPosts(Number(page), Number(limit));
 	}
 
+	// IMPORTANT: Search route must come BEFORE :id route to avoid route conflicts
+	@Public()
+	@Get("search")
+	async searchPosts(
+		@Query("q") query: string,
+		@Query("page") page: string = "1",
+		@Query("limit") limit: string = "10",
+	) {
+		if (!query || query.trim().length === 0) {
+			return { posts: [], total: 0, page: 1, limit: 10, totalPages: 0 };
+		}
+		return this.postsService.searchPosts(
+			query.trim(),
+			Number(page),
+			Number(limit),
+		);
+	}
+
 	@UseGuards(AuthGuard("jwt"))
 	@Get("slug/:slug")
 	async getUserPostBySlug(@Req() req: Request, @Param("slug") slug: string) {
@@ -157,23 +175,6 @@ export class PostsController {
 	@Get("slug/public/:slug")
 	async getPublishedPostBySlug(@Param("slug") slug: string) {
 		return this.postsService.getPublishedPostBySlug(slug);
-	}
-
-	@Public()
-	@Get("search")
-	async searchPosts(
-		@Query("q") query: string,
-		@Query("page") page: string = "1",
-		@Query("limit") limit: string = "10",
-	) {
-		if (!query || query.trim().length === 0) {
-			return { posts: [], total: 0, page: 1, limit: 10, totalPages: 0 };
-		}
-		return this.postsService.searchPosts(
-			query.trim(),
-			Number(page),
-			Number(limit),
-		);
 	}
 
 	@UseGuards(AuthGuard("jwt"))
