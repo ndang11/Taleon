@@ -1,0 +1,25 @@
+name: CodeRabbit Review
+
+on:
+  pull_request:
+    branches: [main, development]
+
+jobs:
+  coderabbit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run CodeRabbit
+        uses: coderabbit/gh-action@v1
+        with:
+          api-key: ${{ secrets.CODERABBIT_API_KEY }}
+          path: "./src"

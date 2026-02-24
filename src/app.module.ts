@@ -1,10 +1,46 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { MongooseModule } from "@nestjs/mongoose";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { AuthModule } from "./auth/auth.module";
+import { CommentsModule } from "./comments/comments.module";
+import { FollowsModule } from "./follows/follows.module";
+import { HealthController } from "./health/health.controller";
+import { LikesModule } from "./likes/likes.module";
+import { MultiTenantModule } from "./multi-tenant/multi-tenant.module";
+import { NotificationsModule } from "./notifications/notifications.module";
+import { PostsModule } from "./posts/posts.module";
+import { TenantsModule } from "./tenants/tenants.module";
+import { UploadModule } from "./upload/upload.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+	imports: [
+		ConfigModule.forRoot({
+			isGlobal: true,
+			envFilePath: ".env",
+		}),
+
+		   MongooseModule.forRootAsync({
+			   inject: [ConfigService],
+			   useFactory: (configService: ConfigService) => ({
+				   uri: configService.get<string>('MONGO_URI'),
+			   }),
+		   }),
+
+		AuthModule,
+		UsersModule,
+		TenantsModule,
+		MultiTenantModule,
+		PostsModule,
+		CommentsModule,
+		LikesModule,
+		FollowsModule,
+		UploadModule,
+		NotificationsModule,
+	],
+	controllers: [AppController, HealthController],
+	providers: [AppService],
 })
 export class AppModule {}
