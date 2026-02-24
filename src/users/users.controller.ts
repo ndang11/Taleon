@@ -56,7 +56,44 @@ export class UsersController {
 	@Put(":id")
 	update(
 		@Param("id") id: string,
-		@Body() body: { name?: string; bio?: string; avatar?: string },
+		@Body()
+		body: {
+			name?: string;
+			email?: string;
+			bio?: string;
+			avatar?: string;
+			coverImage?: string;
+			location?: string;
+			website?: string;
+			phone?: string;
+			username?: string;
+			subdomain?: string;
+			customDomain?: string;
+			digestFrequency?: "daily" | "weekly" | "off";
+			feedbackOptIn?: boolean;
+			allowPrivateNotes?: boolean;
+			allowEmailReplies?: boolean;
+			replyToEmail?: string;
+			notifNewMediumDigest?: boolean;
+			notifRecommendedReading?: boolean;
+			notifSavedListStories?: boolean;
+			notifFollowsHighlights?: boolean;
+			notifRepliesToResponses?: boolean;
+			notifStoryMentions?: "in_network" | "off";
+			notifActivityOnPublished?: boolean;
+			notifActivityOnLists?: boolean;
+			notifEditorsFeatureStories?: boolean;
+			notifNewSubmissions?: boolean;
+			notifSubmissionStatusChanges?: boolean;
+			notifNewProductFeatures?: boolean;
+			notifMembershipInfo?: boolean;
+			googleConnected?: boolean;
+			mastodonAccountCreated?: boolean;
+			mastodonConnected?: boolean;
+			facebookConnected?: boolean;
+			xConnected?: boolean;
+			lastSignOutOthersAt?: Date | null;
+		},
 	) {
 		return this.usersService.update(id, body);
 	}

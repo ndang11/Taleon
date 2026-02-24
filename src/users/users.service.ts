@@ -25,6 +25,33 @@ export interface UserProfile {
 	location: string;
 	website: string;
 	phone: string;
+	username: string;
+	subdomain: string;
+	customDomain: string;
+	digestFrequency: "daily" | "weekly" | "off";
+	feedbackOptIn: boolean;
+	allowPrivateNotes: boolean;
+	allowEmailReplies: boolean;
+	replyToEmail: string;
+	notifNewMediumDigest: boolean;
+	notifRecommendedReading: boolean;
+	notifSavedListStories: boolean;
+	notifFollowsHighlights: boolean;
+	notifRepliesToResponses: boolean;
+	notifStoryMentions: "in_network" | "off";
+	notifActivityOnPublished: boolean;
+	notifActivityOnLists: boolean;
+	notifEditorsFeatureStories: boolean;
+	notifNewSubmissions: boolean;
+	notifSubmissionStatusChanges: boolean;
+	notifNewProductFeatures: boolean;
+	notifMembershipInfo: boolean;
+	googleConnected: boolean;
+	mastodonAccountCreated: boolean;
+	mastodonConnected: boolean;
+	facebookConnected: boolean;
+	xConnected: boolean;
+	lastSignOutOthersAt: Date | null;
 	tenantId: Types.ObjectId;
 	followersCount: number;
 	followingCount: number;
@@ -71,6 +98,33 @@ export class UsersService {
 			location: "",
 			website: "",
 			phone: "",
+			username: "",
+			subdomain: "",
+			customDomain: "",
+			digestFrequency: "daily",
+			feedbackOptIn: false,
+			allowPrivateNotes: false,
+			allowEmailReplies: false,
+			replyToEmail: data.email.toLowerCase().trim(),
+			notifNewMediumDigest: true,
+			notifRecommendedReading: true,
+			notifSavedListStories: true,
+			notifFollowsHighlights: true,
+			notifRepliesToResponses: true,
+			notifStoryMentions: "in_network",
+			notifActivityOnPublished: true,
+			notifActivityOnLists: true,
+			notifEditorsFeatureStories: true,
+			notifNewSubmissions: true,
+			notifSubmissionStatusChanges: true,
+			notifNewProductFeatures: true,
+			notifMembershipInfo: true,
+			googleConnected: true,
+			mastodonAccountCreated: false,
+			mastodonConnected: false,
+			facebookConnected: false,
+			xConnected: false,
+			lastSignOutOthersAt: null,
 			followersCount: 0,
 			followingCount: 0,
 		});
@@ -116,6 +170,33 @@ export class UsersService {
 			location: user.location,
 			website: user.website,
 			phone: user.phone,
+			username: user.username || "",
+			subdomain: user.subdomain || "",
+			customDomain: user.customDomain || "",
+			digestFrequency: user.digestFrequency || "daily",
+			feedbackOptIn: !!user.feedbackOptIn,
+			allowPrivateNotes: !!user.allowPrivateNotes,
+			allowEmailReplies: !!user.allowEmailReplies,
+			replyToEmail: user.replyToEmail || user.email,
+			notifNewMediumDigest: !!user.notifNewMediumDigest,
+			notifRecommendedReading: !!user.notifRecommendedReading,
+			notifSavedListStories: !!user.notifSavedListStories,
+			notifFollowsHighlights: !!user.notifFollowsHighlights,
+			notifRepliesToResponses: !!user.notifRepliesToResponses,
+			notifStoryMentions: user.notifStoryMentions || "in_network",
+			notifActivityOnPublished: !!user.notifActivityOnPublished,
+			notifActivityOnLists: !!user.notifActivityOnLists,
+			notifEditorsFeatureStories: !!user.notifEditorsFeatureStories,
+			notifNewSubmissions: !!user.notifNewSubmissions,
+			notifSubmissionStatusChanges: !!user.notifSubmissionStatusChanges,
+			notifNewProductFeatures: !!user.notifNewProductFeatures,
+			notifMembershipInfo: !!user.notifMembershipInfo,
+			googleConnected: user.googleConnected !== false,
+			mastodonAccountCreated: !!user.mastodonAccountCreated,
+			mastodonConnected: !!user.mastodonConnected,
+			facebookConnected: !!user.facebookConnected,
+			xConnected: !!user.xConnected,
+			lastSignOutOthersAt: user.lastSignOutOthersAt || null,
 			tenantId: user.tenantId,
 			followersCount: user.followersCount || 0,
 			followingCount: user.followingCount || 0,

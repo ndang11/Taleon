@@ -12,17 +12,28 @@ async function bootstrap() {
 	console.log('MONGO_URI:', process.env.MONGO_URI);
 	const app = await NestFactory.create(AppModule);
 
-	const allowedOrigins = [
+	const staticAllowedOrigins = [
 		"https://frontend-taleon.onrender.com",
 		"http://localhost:3000",
 		"http://127.0.0.1:3000",
 	];
 
+	const envAllowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+		.split(",")
+		.map((origin) => origin.trim())
+		.filter(Boolean);
+
+	const allowedOrigins = new Set([...staticAllowedOrigins, ...envAllowedOrigins]);
+
+	const isLocalDevOrigin = (origin: string) => {
+		return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+	};
+
 	app.enableCors({
 		origin: (origin, callback) => {
 			// Allow requests with no origin (like mobile apps or curl requests)
 			if (!origin) return callback(null, true);
-			if (allowedOrigins.includes(origin)) {
+			if (allowedOrigins.has(origin) || isLocalDevOrigin(origin)) {
 				return callback(null, true);
 			}
 			return callback(new Error(`Origin ${origin} not allowed by CORS`), false);
