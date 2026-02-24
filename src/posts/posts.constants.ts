@@ -1,2 +1,0 @@
-export const COMMENTS_SERVICE = "COMMENTS_SERVICE";
-export const LIKES_SERVICE = "LIKES_SERVICE";
