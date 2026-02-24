@@ -217,7 +217,6 @@ export class PostsController {
 		@Body() dto: UpdateDraftDto,
 		@Req() req: Request,
 	) {
-		// Use raw body if DTO is empty due to ValidationPipe issues
 		const data = dto && Object.keys(dto).length > 0 ? dto : req.body;
 		console.log(
 			"[publishPost] Using data:",
