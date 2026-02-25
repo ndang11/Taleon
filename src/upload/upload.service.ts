@@ -3,7 +3,6 @@ import {
 	InternalServerErrorException,
 	Logger,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { UploadApiResponse } from "cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -11,65 +10,18 @@ import { v2 as cloudinary } from "cloudinary";
 export class UploadService {
 	private readonly logger = new Logger(UploadService.name);
 
-	constructor(private readonly configService: ConfigService) {
-		// Get configuration values from ConfigService
-		const cloudinaryUrl = this.configService.get<string>("CLOUDINARY_URL");
-		const cloudName = this.configService.get<string>("CLOUDINARY_CLOUD_NAME");
-		const apiKey = this.configService.get<string>("CLOUDINARY_API_KEY");
-		const apiSecret = this.configService.get<string>("CLOUDINARY_API_SECRET");
-
-		this.logger.log(
-			`Cloudinary config check - CLOUDINARY_URL: ${cloudinaryUrl ? "set" : "not set"}, CLOUDINARY_CLOUD_NAME: ${cloudName ? "set" : "not set"}, CLOUDINARY_API_KEY: ${apiKey ? "set" : "not set"}`,
-		);
-
-		// Also set process.env for Cloudinary SDK (it may use this internally)
-		if (cloudinaryUrl) {
-			process.env.CLOUDINARY_URL = cloudinaryUrl;
-			// Parse CLOUDINARY_URL to extract individual credentials
-			// Format: cloudinary://api_key:api_secret@cloud_name
-			const urlMatch = cloudinaryUrl.match(
-				/cloudinary:\/\/([^:]+):([^@]+)@(.+)/,
-			);
-			if (urlMatch) {
-				const [, parsedApiKey, parsedApiSecret, parsedCloudName] = urlMatch;
-				process.env.CLOUDINARY_CLOUD_NAME = parsedCloudName;
-				process.env.CLOUDINARY_API_KEY = parsedApiKey;
-				process.env.CLOUDINARY_API_SECRET = parsedApiSecret;
-				cloudinary.config({
-					cloud_name: parsedCloudName,
-					api_key: parsedApiKey,
-					api_secret: parsedApiSecret,
-				});
-				this.logger.log("Cloudinary configured by parsing CLOUDINARY_URL");
-			} else {
-				// Fallback: use cloudinary_url config
-				cloudinary.config({
-					cloudinary_url: cloudinaryUrl,
-				});
-				this.logger.log("Cloudinary configured with CLOUDINARY_URL (fallback)");
-			}
-		} else if (cloudName) process.env.CLOUDINARY_CLOUD_NAME = cloudName;
-		if (apiKey) process.env.CLOUDINARY_API_KEY = apiKey;
-		if (apiSecret) process.env.CLOUDINARY_API_SECRET = apiSecret;
-
-		// If CLOUDINARY_URL is provided, use it (it contains all credentials)
-		if (cloudinaryUrl) {
-			cloudinary.config({
-				cloudinary_url: cloudinaryUrl,
-			});
-			this.logger.log("Cloudinary configured with CLOUDINARY_URL");
-		} else if (cloudName && apiKey && apiSecret) {
-			cloudinary.config({
-				cloud_name: cloudName,
-				api_key: apiKey,
-				api_secret: apiSecret,
-			});
-			this.logger.log("Cloudinary configured with individual credentials");
-		} else {
-			this.logger.error(
-				"Cloudinary credentials are missing! Please set CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.",
-			);
-		}
+	constructor() {
+		// Configure Cloudinary with your credentials
+		// Get these from: https://cloudinary.com/console
+		// cloud_name: 'dauivea1l' (from your Cloudinary dashboard)
+		// api_key: '419861726753472' (from your Cloudinary dashboard)
+		// api_secret: 'AMc8IWuGXW5KSoSxT-TBIESDryk' (from your Cloudinary dashboard - View API Keys)
+		cloudinary.config({
+			cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+			api_key: process.env.CLOUDINARY_API_KEY,
+			api_secret: process.env.CLOUDINARY_API_SECRET,
+		});
+		this.logger.log("Cloudinary configured successfully");
 	}
 
 	/**
@@ -84,49 +36,6 @@ export class UploadService {
 		originalName: string,
 		folder: string = "uploads",
 	): Promise<{ url: string; publicId: string }> {
-		// Get configuration values from ConfigService
-		const cloudinaryUrl = this.configService.get<string>("CLOUDINARY_URL");
-		const cloudName = this.configService.get<string>("CLOUDINARY_CLOUD_NAME");
-		const apiKey = this.configService.get<string>("CLOUDINARY_API_KEY");
-		const apiSecret = this.configService.get<string>("CLOUDINARY_API_SECRET");
-
-		this.logger.log(
-			`Cloudinary config check - CLOUDINARY_URL: ${cloudinaryUrl ? "set" : "not set"}, CLOUDINARY_CLOUD_NAME: ${cloudName ? "set" : "not set"}, CLOUDINARY_API_KEY: ${apiKey ? "set" : "not set"}`,
-		);
-
-		// Explicitly configure Cloudinary before upload
-		if (cloudinaryUrl) {
-			// Parse CLOUDINARY_URL to extract individual credentials
-			const urlMatch = cloudinaryUrl.match(
-				/cloudinary:\/\/([^:]+):([^@]+)@(.+)/,
-			);
-			if (urlMatch) {
-				const [, parsedApiKey, parsedApiSecret, parsedCloudName] = urlMatch;
-				cloudinary.config({
-					cloud_name: parsedCloudName,
-					api_key: parsedApiKey,
-					api_secret: parsedApiSecret,
-				});
-			} else {
-				cloudinary.config({ cloudinary_url: cloudinaryUrl });
-			}
-		} else if (cloudName && apiKey && apiSecret) {
-			cloudinary.config({
-				cloud_name: cloudName,
-				api_key: apiKey,
-				api_secret: apiSecret,
-			});
-		} else {
-			throw new InternalServerErrorException(
-				"Cloudinary credentials are missing",
-			);
-		}
-
-		// Debug: Log current Cloudinary config
-		this.logger.log(
-			`Cloudinary config - api_key: ${cloudinary.config().api_key || "not set"}, cloud_name: ${cloudinary.config().cloud_name || "not set"}`,
-		);
-
 		this.logger.log(`Uploading image to ${folder}: ${originalName}`);
 
 		return new Promise((resolve, reject) => {
@@ -192,29 +101,19 @@ export class UploadService {
 	} {
 		const timestamp = Math.round(Date.now() / 1000);
 
-		const apiSecret = this.configService.get<string>(
-			"CLOUDINARY_API_SECRET",
-		) as string;
-		const apiKey = this.configService.get<string>(
-			"CLOUDINARY_API_KEY",
-		) as string;
-		const cloudName = this.configService.get<string>(
-			"CLOUDINARY_CLOUD_NAME",
-		) as string;
-
 		const signature = cloudinary.utils.api_sign_request(
 			{
 				timestamp,
 				folder,
 			},
-			apiSecret,
+			process.env.CLOUDINARY_API_SECRET as string,
 		);
 
 		return {
 			timestamp,
 			signature,
-			apiKey,
-			cloudName,
+			apiKey: process.env.CLOUDINARY_API_KEY as string,
+			cloudName: process.env.CLOUDINARY_CLOUD_NAME as string,
 		};
 	}
 }

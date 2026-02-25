@@ -6,8 +6,7 @@ export class UpdateDraftDto {
 	title?: string;
 
 	@IsOptional()
-	@IsString()
-	content?: string;
+	content?: string | Record<string, unknown>;
 
 	@IsOptional()
 	@IsString()
