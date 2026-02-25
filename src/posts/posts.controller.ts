@@ -219,9 +219,9 @@ export class PostsController {
 		const data = dto && Object.keys(dto).length > 0 ? dto : req.body;
 		console.log(
 			"[publishPost] Using data:",
-			JSON.stringify(data).substring(0, 200),
+			data ? JSON.stringify(data).substring(0, 200) : "(no data)",
 		);
-		return this.postsService.publish(user.tenantId, user.userId, id, data);
+		return this.postsService.publish(user.tenantId, user.userId, id, data || {});
 	}
 
 	@UseGuards(AuthGuard("jwt"))
