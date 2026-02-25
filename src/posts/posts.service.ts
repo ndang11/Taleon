@@ -23,6 +23,7 @@ interface UpdateDraftData {
 	wordCount?: number;
 	readingTime?: number;
 	status?: "draft" | "published" | "unpublished" | "archived";
+	publishedAt?: Date;
 	image?: string;
 	coverImage?: string;
 }
@@ -238,7 +239,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 
 		const updatePayload: UpdateDraftData = { ...data };
 
-		if (data.content) {
+		if (data.content !== undefined) {
 			const contentString =
 				typeof data.content === "string"
 					? data.content
@@ -259,6 +260,11 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		if (data.image) {
 			updatePayload.coverImage = data.image;
 			delete updatePayload.image;
+		}
+
+		if (data.status === "published") {
+			updatePayload.status = "published";
+			updatePayload.publishedAt = new Date();
 		}
 
 		// Convert string IDs to ObjectId for proper querying
@@ -317,7 +323,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		const newPost = new this.postModel({
-			title: dto.title || "Untitled Story",
+			title: dto.title || "",
 			content: contentString,
 			slug: fullSlug,
 			authorId: new Types.ObjectId(userId),
@@ -603,7 +609,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		// Ensure title and content have fallbacks if somehow missing
-		const title = post.title || "Untitled Story";
+		const title = post.title || "";
 		const content = post.content || "";
 		const coverImage = post.coverImage || null;
 
@@ -634,7 +640,7 @@ export class PostsService extends TenantBaseService<PostDocument> {
 		}
 
 		// Ensure title and content have fallbacks if somehow missing
-		const title = post.title || "Untitled Story";
+		const title = post.title || "";
 		const content = post.content || "";
 		const coverImage = post.coverImage || null;
 
