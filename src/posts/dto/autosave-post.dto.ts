@@ -12,8 +12,4 @@ export class AutosavePostDto {
 	@IsOptional()
 	@IsString()
 	image?: string;
-
-	@IsOptional()
-	@IsString()
-	coverImage?: string;
 }

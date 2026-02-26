@@ -1,4 +1,5 @@
 import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class UpdateDraftDto {
 	@IsOptional()
@@ -6,7 +7,8 @@ export class UpdateDraftDto {
 	title?: string;
 
 	@IsOptional()
-	content?: string | Record<string, unknown>;
+	@IsString()
+	content?: string;
 
 	@IsOptional()
 	@IsString()
@@ -35,6 +37,8 @@ export class PublishPostDto {
 	title?: string;
 
 	@IsOptional()
+	@IsString()
+	content?: string;
 	@IsString()
 	content?: string;
 

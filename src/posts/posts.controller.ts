@@ -46,19 +46,14 @@ export class PostsController {
 		@Param("id") id: string,
 		@Body() dto: AutosavePostDto,
 		@Req() req: Request,
+		@Req() req: Request,
 	) {
-		console.log(
-			"[autoSave Controller] Raw body:",
-			req.body ? JSON.stringify(req.body).substring(0, 200) : "(undefined)",
-		);
+		console.log("[autoSave Controller] Raw body:", req.body ? JSON.stringify(req.body).substring(0, 200) : "(undefined)");
 		console.log("[autoSave Controller] DTO received:", JSON.stringify(dto));
 		console.log("[autoSave Controller] DTO keys:", Object.keys(dto || {}));
 		// Use raw body if DTO is empty due to ValidationPipe issues
-		const data = dto && Object.keys(dto).length > 0 ? dto : req.body;
-		console.log(
-			"[autoSave Controller] Using data:",
-			JSON.stringify(data).substring(0, 200),
-		);
+		const data = (dto && Object.keys(dto).length > 0) ? dto : req.body;
+		console.log("[autoSave Controller] Using data:", JSON.stringify(data).substring(0, 200));
 		return this.postsService.updateDraft(user.tenantId, user.userId, id, data);
 	}
 
@@ -215,14 +210,12 @@ export class PostsController {
 		@Param("id") id: string,
 		@Body() dto: UpdateDraftDto,
 		@Req() req: Request,
+		@Req() req: Request,
 	) {
 		// Use raw body if DTO is empty due to ValidationPipe issues
-		const data = dto && Object.keys(dto).length > 0 ? dto : req.body;
-		console.log(
-			"[publishPost] Using data:",
-			data ? JSON.stringify(data).substring(0, 200) : "(no data)",
-		);
-		return this.postsService.publish(user.tenantId, user.userId, id, data || {});
+		const data = (dto && Object.keys(dto).length > 0) ? dto : req.body;
+		console.log("[publishPost] Using data:", JSON.stringify(data).substring(0, 200));
+		return this.postsService.publish(user.tenantId, user.userId, id, data);
 	}
 
 	@UseGuards(AuthGuard("jwt"))

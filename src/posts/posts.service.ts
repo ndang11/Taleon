@@ -232,14 +232,11 @@ export class PostsService extends TenantBaseService<PostDocument> {
 			"[DEBUG updateDraft] data.content preview:",
 			this.safeContentPreview(data.content),
 		);
-		console.log(
-			"[DEBUG updateDraft] data.image:",
-			data.image ? "provided" : "not provided",
-		);
+		console.log("[DEBUG updateDraft] data.image:", data.image ? "provided" : "not provided");
 
 		const updatePayload: UpdateDraftData = { ...data };
 
-		if (data.content !== undefined) {
+		if (data.content) {
 			const contentString =
 				typeof data.content === "string"
 					? data.content
